@@ -8,7 +8,9 @@
     </div>
 </td>
 <td class="align-middle py-0">
-    <app-select [options]="gs.recordTypes" notNull [formControl]="inputType"></app-select>
+    <select class="form-control" [formControl]="inputType">
+        <option *ngFor="let record of gs.recordTypes" [value]="record">{{ record }}</option>
+    </select>
 </td>
 <td class="align-middle py-0">
     <input class="form-control form-control-sm" type="text" [formControl]="inputContent">
@@ -31,6 +33,7 @@
 </td>
 <td class="align-middle text-center py-0">
     <span>
-        <button class="btn btn-primary btn-sm w-100" (click)="onSave()">Add</button>
+        <button class="btn btn-primary btn-sm" (click)="onSave(false)">Add</button>
+        <button class="btn btn-primary btn-sm" (click)="onSave(true)">PTR</button>
     </span>
 </td>

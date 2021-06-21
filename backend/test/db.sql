@@ -94,7 +94,8 @@ INSERT INTO `domains` (`id`, `name`, `master`, `last_check`, `type`, `notified_s
 (2, 'slave.example.net', '12.34.56.78', NULL, 'SLAVE', NULL, NULL),
 (3, 'foo.de', NULL, NULL, 'NATIVE', NULL, NULL),
 (4, 'bar.net', NULL, NULL, 'MASTER', NULL, NULL),
-(5, 'baz.org', NULL, NULL, 'MASTER', NULL, NULL);
+(5, 'baz.org', NULL, NULL, 'MASTER', NULL, NULL),
+(6, '.arpa', NULL, NULL, 'MASTER', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -133,7 +134,8 @@ CREATE TABLE `permissions` (
 
 INSERT INTO `permissions` (`domain_id`, `user_id`) VALUES
 (1, 2),
-(2, 2);
+(2, 2),
+(6, 2);
 
 -- --------------------------------------------------------
 

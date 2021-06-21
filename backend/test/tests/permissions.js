@@ -11,7 +11,7 @@ test.run(async function () {
         assert.equal(res.status, 200, 'Status should be OK');
         assert.equal(res.data.paging, {
             page: 2,
-            total: 2,
+            total: 3,
             pagesize: 1
         }, 'Paging data fail for ' + res.config.url);
         assert.equal(res.data.results.length, 1, "Should be 1 results.");
@@ -30,6 +30,10 @@ test.run(async function () {
             {
                 domainId: '2',
                 domainName: 'slave.example.net'
+            },
+            {
+                domainId: '6',
+                domainName: '.arpa'
             }
         ], 'Get permissions result fail');
 

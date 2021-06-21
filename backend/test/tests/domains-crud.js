@@ -58,7 +58,7 @@ test.run(async function () {
 
         assert.equal(res.status, 201, 'Creation should be successfull');
         assert.equal(res.data, {
-            id: 6,
+            id: 7,
             name: 'master.de',
             type: 'MASTER'
         }, 'Creation result fail.')
@@ -75,7 +75,7 @@ test.run(async function () {
 
         assert.equal(res.status, 201, 'Creation should be successfull');
         assert.equal(res.data, {
-            id: 7,
+            id: 8,
             name: 'native.de',
             type: 'NATIVE'
         }, 'Creation result fail.')
@@ -93,7 +93,7 @@ test.run(async function () {
 
         assert.equal(res.status, 201, 'Creation should be successfull');
         assert.equal(res.data, {
-            id: 8,
+            id: 9,
             name: 'slave.de',
             type: 'SLAVE',
             master: '1.2.3.4'
@@ -101,13 +101,13 @@ test.run(async function () {
 
         //Get master domain
         var res = await req({
-            url: '/domains/6',
+            url: '/domains/7',
             method: 'get'
         });
 
         assert.equal(res.status, 200, 'Domain access for master domain should be OK.');
         assert.equal(res.data, {
-            id: 6,
+            id: 7,
             name: 'master.de',
             type: 'MASTER',
             records: 0
@@ -115,13 +115,13 @@ test.run(async function () {
 
         //Get native domain
         var res = await req({
-            url: '/domains/7',
+            url: '/domains/8',
             method: 'get'
         });
 
         assert.equal(res.status, 200, 'Domain access for native domain should be OK.');
         assert.equal(res.data, {
-            id: 7,
+            id: 8,
             name: 'native.de',
             type: 'NATIVE',
             records: 0
@@ -129,13 +129,13 @@ test.run(async function () {
 
         //Get slave domain
         var res = await req({
-            url: '/domains/8',
+            url: '/domains/9',
             method: 'get'
         });
 
         assert.equal(res.status, 200, 'Domain access for slave domain should be OK.');
         assert.equal(res.data, {
-            id: 8,
+            id: 9,
             name: 'slave.de',
             type: 'SLAVE',
             records: 0,
@@ -144,7 +144,7 @@ test.run(async function () {
 
         //Update slave domain
         var res = await req({
-            url: '/domains/8',
+            url: '/domains/9',
             method: 'put',
             data: {
                 master: '9.8.7.6'
@@ -155,7 +155,7 @@ test.run(async function () {
 
         //Check if update succeded
         var res = await req({
-            url: '/domains/8',
+            url: '/domains/9',
             method: 'get'
         });
 

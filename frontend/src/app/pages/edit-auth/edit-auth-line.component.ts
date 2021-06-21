@@ -76,24 +76,26 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
         }
     }
 
-    public async onSave() {
-        await this.records.updateRecord(this.entry.id, this.fullName(),
+    public async onSave(ptr) {
+        await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
             this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value);
 
         this.editMode = false;
         this.recordUpdated.emit();
     }
 
-    public async onDeleteClick() {
+    public async onDeleteClick(event) {
         try {
-            await this.modal.showMessage(new ModalOptionsDatatype({
-                heading: 'Confirm deletion',
-                body: 'Are you sure you want to delete the ' + this.inputType.value +
-                    ' record ' + this.fullName() + ' with content ' + this.inputContent.value + '?',
-                acceptText: 'Delete',
-                dismisText: 'Cancel',
-                acceptClass: 'danger'
-            }));
+            if (!event.shiftKey) {
+                await this.modal.showMessage(new ModalOptionsDatatype({
+                    heading: 'Confirm deletion',
+                    body: 'Are you sure you want to delete the ' + this.inputType.value +
+                        ' record ' + this.fullName() + ' with content ' + this.inputContent.value + '?',
+                    acceptText: 'Delete',
+                    dismisText: 'Cancel',
+                    acceptClass: 'danger'
+                }));
+            }
 
             await this.records.delete(this.entry.id);
 

@@ -43,7 +43,7 @@ export class EditAuthAddComponent implements OnInit {
         this.inputType.reset('A');
         this.inputContent.reset('');
         this.inputPriority.reset('0');
-        this.inputTtl.reset('86400');
+        this.inputTtl.reset('3600');
     }
 
     public fullName(): string {
@@ -54,9 +54,9 @@ export class EditAuthAddComponent implements OnInit {
         }
     }
 
-    public async onSave() {
+    public async onSave(ptr) {
         await this.records.create(this.domain.id, this.fullName(), this.inputType.value,
-            this.inputContent.value, this.inputPriority.value, this.inputTtl.value);
+            this.inputContent.value, this.inputPriority.value, this.inputTtl.value, ptr);
 
         this.recordAdded.emit();
 

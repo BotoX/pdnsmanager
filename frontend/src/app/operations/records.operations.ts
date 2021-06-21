@@ -49,7 +49,7 @@ export class RecordsOperation {
         }
     }
 
-    public async updateRecord(recordId: number, name?: string, type?: string, content?: string,
+    public async updateRecord(recordId: number,  ptr: boolean, name?: string, type?: string, content?: string,
         priority?: number, ttl?: number): Promise<boolean> {
         const data = {};
         if (name !== null && name !== undefined) {
@@ -67,6 +67,7 @@ export class RecordsOperation {
         if (ttl !== null && ttl !== undefined) {
             data['ttl'] = ttl;
         }
+        data['ptr'] = ptr;
 
         try {
             await this.http.put(['/records', recordId.toString()], data);
@@ -79,7 +80,7 @@ export class RecordsOperation {
     }
 
     public async create(domainId: number, name: string, type: string, content: string,
-        priority: number, ttl: number): Promise<RecordApitype> {
+        priority: number, ttl: number, ptr: boolean): Promise<RecordApitype> {
         try {
             const result = new RecordApitype(await this.http.post('/records', {
                 name: name,
@@ -87,6 +88,7 @@ export class RecordsOperation {
                 content: content,
                 priority: priority,
                 ttl: ttl,
+                ptr: ptr,
                 domain: domainId
             }));
 

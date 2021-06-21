@@ -90,7 +90,7 @@
                                 <input class="form-control form-control-sm no-shadow" type="text" placeholder="Search" [formControl]="queryNameInput">
                             </div>
                         </th>
-                        <th class="w-15 align-middle">
+                        <th class="w-10 align-middle">
                             <div class="form-inline">
                                 <span>Type</span>
                                 <app-sort field="type" [activeFields]="sortField" (sort)="onSortEvent($event)"></app-sort>
@@ -104,15 +104,15 @@
                                 <input class="form-control form-control-sm no-shadow" type="text" placeholder="Search" [formControl]="queryContentInput">
                             </div>
                         </th>
-                        <th class="w-10 align-middle">
+                        <th class="w-6 align-middle">
                             <span>Priority</span>
                             <app-sort field="priority" [activeFields]="sortField" (sort)="onSortEvent($event)"></app-sort>
                         </th>
-                        <th class="w-8 align-middle">
+                        <th class="w-6 align-middle">
                             <span>TTL</span>
                             <app-sort field="ttl" [activeFields]="sortField" (sort)="onSortEvent($event)"></app-sort>
                         </th>
-                        <th class="w-9 align-middle"></th>
+                        <th class="w-8 align-middle"></th>
                     </tr>
                 </thead>
                 <tbody>

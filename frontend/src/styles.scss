@@ -37,6 +37,18 @@ $sizes: (
   300: 300%
 );
 
+@import '~bootstrap/scss/_functions.scss';
+@import '~bootstrap/scss/_variables.scss';
+
+$spacers: (
+    // The rest of numbers you need to use...
+    6: ($spacer * 6)
+);
+
+$container-max-widths: (
+  xl: 1600px
+);
+
 @import '~bootstrap/scss/bootstrap.scss';
 
 .dropdown-item-hover {

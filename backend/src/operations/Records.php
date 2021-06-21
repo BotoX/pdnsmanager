@@ -179,23 +179,14 @@ class Records
         $query->bindValue(':changeDate', time(), \PDO::PARAM_INT);
         $query->execute();
 
-        $query = $this->db->prepare('SELECT id,name,type,content,prio AS priority,ttl,domain_id AS domain FROM records
-                                    ORDER BY id DESC LIMIT 1');
-        $query->execute();
-
-        $record = $query->fetch();
-
-        $record['id'] = intval($record['id']);
-        $record['priority'] = intval($record['priority']);
-        $record['ttl'] = intval($record['ttl']);
-        $record['domain'] = intval($record['domain']);
+        $insertId = $this->db->lastInsertId();
 
         $soa = new \Operations\Soa($this->c);
         $soa->updateSerial($domain);
 
         $this->db->commit();
 
-        return $record;
+        return $this->getRecord($insertId);
     }
 
     /**
@@ -203,26 +194,15 @@ class Records
      * 
      * @param   $id     Id of the record to delete
      * 
-     * @return  void
+     * @return  array   Deleted record entry
      * 
      * @throws  NotFoundException   if record does not exist
      */
-    public function deleteRecord(int $id) : void
+    public function deleteRecord(int $id) : array
     {
+        $record = $this->getRecord($id);
+
         $this->db->beginTransaction();
-
-        $query = $this->db->prepare('SELECT id,domain_id FROM records WHERE id=:id');
-        $query->bindValue(':id', $id, \PDO::PARAM_INT);
-        $query->execute();
-
-        $record = $query->fetch();
-
-        if ($record === false) { //Domain does not exist
-            $this->db->rollBack();
-            throw new \Exceptions\NotFoundException();
-        }
-
-        $domainId = intval($record['domain_id']);
 
         $query = $this->db->prepare('DELETE FROM remote WHERE record=:id');
         $query->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -233,9 +213,11 @@ class Records
         $query->execute();
 
         $soa = new \Operations\Soa($this->c);
-        $soa->updateSerial($domainId);
+        $soa->updateSerial($record['domain']);
 
         $this->db->commit();
+
+        return $record;
     }
 
     /**
@@ -268,6 +250,78 @@ class Records
         return $record;
     }
 
+    /** Find single record
+     * 
+     * If params are null do not search for them
+     * 
+     * @param   $domain     Domain id of the zone to search
+     * @param   $name       name
+     * @param   $type       type
+     * @param   $content    content
+     * @param   $priority   priority
+     * @param   $ttl        ttl
+     * 
+     * @return  array       Record entry
+     * 
+     * @throws  NotFoundException   The given record does not exist
+     * @throws  SemanticException   The given record type is invalid
+     * @throws  AmbiguousException  if more than one record matches the search
+     */
+    public function findRecord(? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl, int $domain) : array
+    {
+        if ($type !== null && !in_array($type, $this->c['config']['records']['allowedTypes'])) {
+            throw new \Exceptions\SemanticException();
+        }
+
+        $queryStr = 'SELECT id FROM records WHERE domain_id = :domain';
+        if ($name !== null) {
+            $queryStr .= ' AND name = :name';
+        }
+        if ($type !== null) {
+            $queryStr .= ' AND type = :type';
+        }
+        if ($content !== null) {
+            $queryStr .= ' AND content = :content';
+        }
+        if ($priority !== null) {
+            $queryStr .= ' AND prio = :prio';
+        }
+        if ($ttl !== null) {
+            $queryStr .= ' AND ttl = :ttl';
+        }
+
+        $query = $this->db->prepare($queryStr);
+        $query->bindValue(':domain', $domain, \PDO::PARAM_INT);
+        if ($name !== null) {
+            $query->bindValue(':name', $name, \PDO::PARAM_STR);
+        }
+        if ($type !== null) {
+            $query->bindValue(':type', $type, \PDO::PARAM_INT);
+        }
+        if ($content !== null) {
+            $query->bindValue(':content', $content, \PDO::PARAM_STR);
+        }
+        if ($priority !== null) {
+            $query->bindValue(':prio', $priority, \PDO::PARAM_INT);
+        }
+        if ($ttl !== null) {
+            $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
+        }
+        $query->execute();
+
+        $record = $query->fetch();
+
+        if ($record === false) {
+            throw new \Exceptions\NotFoundException();
+        }
+
+        if ($query->rowCount() > 1) {
+            throw new \Exceptions\AmbiguousException();
+        }
+
+        return $this->getRecord(intval($record['id']));
+    }
+
     /** Update Record
      * 
      * If params are null do not change
@@ -279,50 +333,117 @@ class Records
      * @param   $priority   New priority
      * @param   $ttl        New ttl
      * 
-     * @return  void
+     * @return  array       Record entry
      * 
      * @throws  NotFoundException   The given record does not exist
      * @throws  SemanticException   The given record type is invalid
      */
-    public function updateRecord(int $recordId, ? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl)
+    public function updateRecord(int $recordId, ? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl) : array
     {
-        $this->db->beginTransaction();
-
-        $query = $this->db->prepare('SELECT id,domain_id,name,type,content,prio,ttl FROM records WHERE id=:recordId');
-        $query->bindValue(':recordId', $recordId);
-        $query->execute();
-
-        $record = $query->fetch();
-
-        if ($record === false) {
-            $this->db->rollBack();
-            throw new \Exceptions\NotFoundException();
-        }
-
         if ($type !== null && !in_array($type, $this->c['config']['records']['allowedTypes'])) {
             throw new \Exceptions\SemanticException();
         }
 
-        $domainId = intval($record['domain_id']);
+        $record = $this->getRecord($recordId);
 
         $name = $name === null ? $record['name'] : $name;
         $type = $type === null ? $record['type'] : $type;
         $content = $content === null ? $record['content'] : $content;
-        $priority = $priority === null ? intval($record['prio']) : $priority;
+        $priority = $priority === null ? intval($record['priority']) : $priority;
         $ttl = $ttl === null ? intval($record['ttl']) : $ttl;
 
-        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,prio=:priority,ttl=:ttl WHERE id=:recordId');
-        $query->bindValue('recordId', $recordId);
-        $query->bindValue(':name', $name);
-        $query->bindValue(':type', $type);
-        $query->bindValue(':content', $content);
-        $query->bindValue(':priority', $priority);
-        $query->bindValue(':ttl', $ttl);
+        $this->db->beginTransaction();
+
+        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,ttl=:ttl,prio=:prio,change_date=:changeDate
+                                    WHERE id=:recordId');
+        $query->bindValue(':recordId', $recordId, \PDO::PARAM_INT);
+        $query->bindValue(':name', $name, \PDO::PARAM_STR);
+        $query->bindValue(':type', $type, \PDO::PARAM_STR);
+        $query->bindValue(':content', $content, \PDO::PARAM_STR);
+        $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
+        $query->bindValue(':prio', $priority, \PDO::PARAM_INT);
+        $query->bindValue(':changeDate', time(), \PDO::PARAM_INT);
         $query->execute();
 
         $soa = new \Operations\Soa($this->c);
-        $soa->updateSerial($domainId);
+        $soa->updateSerial($record['domain']);
 
         $this->db->commit();
+
+        return array(
+            "old" => $record,
+            "new" => $this->getRecord($recordId)
+        );
+    }
+
+    /**
+     * Get Best Matching in-addr.arpa Zone ID from A or AAAA record
+     * 
+     * @param   $userId     Id of the user for which the reverse zone should be searched
+     * @param   $type       Record type (A or AAAA)
+     * @param   $content    Record content (IPv4 or IPv6 address)
+     * 
+     * @return  array       Zone ID and PTR record name or null
+     * 
+     * @throws  NotFoundException   if the zone does not exist
+     * @throws  SemanticException   The given record type is invalid
+     */
+    public function getBestMatchingZoneIdFromRecord(int $userId, string $type, string $content) : ?array
+    {
+        if ($type == 'A') {
+            $in_addr = inet_pton($content);
+            if ($in_addr !== false) {
+                $arr = preg_split("/\./", inet_ntop($in_addr));
+                $arpa = sprintf("%d.%d.%d.%d.in-addr.arpa", $arr[3], $arr[2], $arr[1], $arr[0]);
+            }
+        } elseif ($type == 'AAAA') {
+            $in6_addr = inet_pton($content);
+            if ($in6_addr !== false) {
+                $hex = unpack('H*hex', $in6_addr)['hex'];
+                $arpa = implode('.', array_reverse(str_split($hex))) . '.ip6.arpa';
+            }
+        } else {
+            throw new \Exceptions\SemanticException();
+        }
+
+        // Invalid record content (invalid IP), ignore since it's user supplied
+        if (!isset($arpa) || $arpa === null) {
+            return null;
+        }
+
+        $ac = new \Operations\AccessControl($this->c);
+        $userIsAdmin = $ac->isAdmin($userId);
+
+        $query = $this->db->prepare('SELECT id, name FROM domains
+                                    LEFT OUTER JOIN permissions P ON P.domain_id = id
+                                    WHERE (P.user_id=:userId OR :userIsAdmin) AND
+                                    name LIKE \'%.arpa\'
+                                    ORDER BY length(name) DESC');
+        $query->bindValue(':userId', $userId, \PDO::PARAM_INT);
+        $query->bindValue(':userIsAdmin', $userIsAdmin, \PDO::PARAM_INT);
+        $response = $query->execute();
+
+        if ($response === false) {
+            return null;
+        }
+
+        $match = 72; // the longest ip6.arpa has a length of 72
+        $found_domain_id = -1;
+        while ($r = $query->fetch()) {
+            $pos = stripos($arpa, $r["name"]);
+            if ($pos !== false) {
+                // one possible searched $arpa is found
+                if ($pos < $match) {
+                    $match = $pos;
+                    $found_domain_id = $r["id"];
+                }
+            }
+        }
+
+        if ($found_domain_id == -1) {
+            return null;
+        }
+
+        return array("id" => $found_domain_id, "arpa" => $arpa);
     }
 }

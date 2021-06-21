@@ -55,7 +55,7 @@ test.run(async function () {
         assert.equal(res.data.results.length, 3, "Should be 3 results.");
 
         var res = await req({
-            url: '/domains?pagesize=3&page=2',
+            url: '/domains?pagesize=4&page=2',
             method: 'get'
         });
 
@@ -63,7 +63,7 @@ test.run(async function () {
         assert.equal(res.data.paging, {
             page: 2,
             total: 2,
-            pagesize: 3
+            pagesize: 4
         }, 'Paging data fail for ' + res.config.url);
         assert.equal(res.data.results.length, 2, "Should be 2 results.");
 
@@ -127,6 +127,12 @@ test.run(async function () {
                 name: 'slave.example.net',
                 type: 'SLAVE',
                 master: '12.34.56.78',
+                records: 0
+            },
+            {
+                id: 6,
+                name: '.arpa',
+                type: 'MASTER',
                 records: 0
             }
         ], 'Result fail for user on ' + res.config.url);

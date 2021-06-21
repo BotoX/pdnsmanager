@@ -24,6 +24,7 @@ test.run(async function () {
                 content: "1.2.3.4",
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 1
             }
         });
@@ -40,6 +41,7 @@ test.run(async function () {
                 content: "1.2.3.4",
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 2
             }
         });
@@ -56,6 +58,7 @@ test.run(async function () {
                 content: "1.2.3.4",
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 100
             }
         });
@@ -72,6 +75,7 @@ test.run(async function () {
                 content: '1.2.3.4',
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 1
             }
         });
@@ -112,13 +116,31 @@ test.run(async function () {
             domain: 1
         }, 'Record data should be the same it was created with.');
 
+        //Get created PTR record
+        var res = await req({
+            url: '/records/7',
+            method: 'get'
+        });
+
+        assert.equal(res.status, 200, 'Get of created PTR record should succeed.');
+        assert.equal(res.data, {
+            id: 7,
+            name: '4.3.2.1.in-addr.arpa',
+            type: 'PTR',
+            content: 'dns.example.com',
+            priority: 0,
+            ttl: 86400,
+            domain: 6
+        }, 'PTR record has wrong data.');
+
 
         //Update record
         var res = await req({
             url: '/records/6',
             method: 'put',
             data: {
-                name: 'foo.example.com'
+                name: 'foo.example.com',
+                ptr: true
             }
         });
 
@@ -141,6 +163,23 @@ test.run(async function () {
             domain: 1
         }, 'Updated record has wrong data.');
 
+        //Get updated PTR record
+        var res = await req({
+            url: '/records/7',
+            method: 'get'
+        });
+
+        assert.equal(res.status, 200, 'Get of updated PTR record should succeed.');
+        assert.equal(res.data, {
+            id: 7,
+            name: '4.3.2.1.in-addr.arpa',
+            type: 'PTR',
+            content: 'foo.example.com',
+            priority: 0,
+            ttl: 86400,
+            domain: 6
+        }, 'PTR record has wrong data.');
+
         //Delete not existing record
         var res = await req({
             url: '/records/100',
@@ -157,6 +196,14 @@ test.run(async function () {
 
         assert.equal(res.status, 204, 'Deletion of existing record should succeed.');
 
+        //Delete not existing PTR record
+        var res = await req({
+            url: '/records/7',
+            method: 'delete'
+        });
+
+        assert.equal(res.status, 404, 'Deletion of not existing PTR record should fail.');
+
     });
 
     await test('user', async function (assert, req) {
@@ -170,6 +217,7 @@ test.run(async function () {
                 content: '1.2.3.4',
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 3
             }
         });
@@ -206,13 +254,14 @@ test.run(async function () {
                 content: '1.2.3.4',
                 priority: 0,
                 ttl: 86400,
+                ptr: true,
                 domain: 1
             }
         });
 
         assert.equal(res.status, 201, 'Adding of record should succeed.');
         assert.equal(res.data, {
-            id: 7,
+            id: 8,
             name: 'dns.example.com',
             type: 'A',
             content: '1.2.3.4',
@@ -223,13 +272,13 @@ test.run(async function () {
 
         //Get created record
         var res = await req({
-            url: '/records/7',
+            url: '/records/8',
             method: 'get'
         });
 
         assert.equal(res.status, 200, 'Get of created record should succeed.');
         assert.equal(res.data, {
-            id: 7,
+            id: 8,
             name: 'dns.example.com',
             type: 'A',
             content: '1.2.3.4',
@@ -238,14 +287,32 @@ test.run(async function () {
             domain: 1
         }, 'Record data should be the same it was created with.');
 
+        //Get created PTR record
+        var res = await req({
+            url: '/records/9',
+            method: 'get'
+        });
+
+        assert.equal(res.status, 200, 'Get of created PTR record should succeed.');
+        assert.equal(res.data, {
+            id: 9,
+            name: '4.3.2.1.in-addr.arpa',
+            type: 'PTR',
+            content: 'dns.example.com',
+            priority: 0,
+            ttl: 86400,
+            domain: 6
+        }, 'PTR record has wrong data.');
+
 
         //Update record
         var res = await req({
-            url: '/records/7',
+            url: '/records/8',
             method: 'put',
             data: {
                 name: 'foo.example.com',
-                ttl: 60
+                ttl: 60,
+                ptr: true
             }
         });
 
@@ -253,13 +320,13 @@ test.run(async function () {
 
         //Get updated record
         var res = await req({
-            url: '/records/7',
+            url: '/records/8',
             method: 'get'
         });
 
         assert.equal(res.status, 200, 'Get updated record should succeed.');
         assert.equal(res.data, {
-            id: 7,
+            id: 8,
             name: 'foo.example.com',
             type: 'A',
             content: '1.2.3.4',
@@ -268,12 +335,37 @@ test.run(async function () {
             domain: 1
         }, 'Updated record has wrong data.');
 
+        //Get updated PTR record
+        var res = await req({
+            url: '/records/9',
+            method: 'get'
+        });
+
+        assert.equal(res.status, 200, 'Get of updated PTR record should succeed.');
+        assert.equal(res.data, {
+            id: 9,
+            name: '4.3.2.1.in-addr.arpa',
+            type: 'PTR',
+            content: 'foo.example.com',
+            priority: 0,
+            ttl: 60,
+            domain: 6
+        }, 'PTR record has wrong data.');
+
         //Delete existing record
         var res = await req({
-            url: '/records/7',
+            url: '/records/8',
             method: 'delete'
         });
 
         assert.equal(res.status, 204, 'Deletion of existing record should succeed.');
+
+        //Delete not existing PTR record
+        var res = await req({
+            url: '/records/9',
+            method: 'delete'
+        });
+
+        assert.equal(res.status, 403, 'Deletion of not existing PTR record should fail.');
     });
 });
