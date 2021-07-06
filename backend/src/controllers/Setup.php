@@ -57,11 +57,30 @@ class Setup
             $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $pdo->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
-            // Check if database is empty
+            // Check database
+            $tables = array();
             $query = $pdo->prepare('SHOW TABLES');
             $query->execute();
-            if ($query->fetch() !== false) {
-                return $res->withJson(['error' => 'The database is not empty.'], 500);
+
+            while ($table = $query->fetch()) {
+                $tables[current($table)] = 1;
+            }
+
+            if (!isset($tables['comments']) ||
+                !isset($tables['cryptokeys']) ||
+                !isset($tables['domainmetadata']) ||
+                !isset($tables['domains']) ||
+                !isset($tables['records']) ||
+                !isset($tables['supermasters']) ||
+                !isset($tables['tsigkeys'])) {
+                return $res->withJson(['error' => 'PowerDNS tables not found. Import PowerDNS schema first.'], 500);
+            }
+
+            if (isset($tables['permissions']) ||
+                isset($tables['remote']) ||
+                isset($tables['users']) ||
+                isset($tables['options'])) {
+                return $res->withJson(['error' => 'PDNS Manager tables already exist.'], 500);
             }
 
             // Check if config can be written

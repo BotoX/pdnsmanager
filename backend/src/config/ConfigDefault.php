@@ -29,16 +29,16 @@ $defaultConfig = [
     ],
     'records' => [
         'allowedTypes' => [
-            'A', 'A6', 'AAAA', 'AFSDB', 'ALIAS', 'CAA', 'CDNSKEY', 'CDS', 'CERT', 'CNAME', 'DHCID',
-            'DLV', 'DNAME', 'DNSKEY', 'DS', 'EUI48', 'EUI64', 'HINFO',
+            'A', 'A6', 'AAAA', 'AFSDB', 'ALIAS', 'APL', 'CAA', 'CDNSKEY', 'CDS', 'CERT', 'CNAME',
+            'CSYNC', 'DHCID', 'DLV', 'DNAME', 'DNSKEY', 'DS', 'EUI48', 'EUI64', 'HINFO',
             'IPSECKEY', 'KEY', 'KX', 'LOC', 'LUA', 'MAILA', 'MAILB', 'MINFO', 'MR',
             'MX', 'NAPTR', 'NS', 'NSEC', 'NSEC3', 'NSEC3PARAM', 'OPENPGPKEY',
-            'OPT', 'PTR', 'RKEY', 'RP', 'RRSIG', 'SIG', 'SPF',
-            'SRV', 'TKEY', 'SSHFP', 'TLSA', 'TSIG', 'TXT', 'WKS', 'MBOXFW', 'URL'
+            'PTR', 'RKEY', 'RP', 'RRSIG', 'SIG', 'SMIMEA', 'SPF',
+            'SRV', 'TKEY', 'SSHFP', 'TLSA', 'TSIG', 'TXT', 'WKS', 'URI'
         ]
     ],
     'proxys' => [],
-    'dbVersion' => 7
+    'dbVersion' => 0
 ];
 
 if (file_exists('../config/ConfigOverride.php')) {

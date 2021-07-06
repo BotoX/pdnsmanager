@@ -168,15 +168,14 @@ class Records
             throw new \Exceptions\NotFoundException();
         }
 
-        $query = $this->db->prepare('INSERT INTO records (domain_id, name, type, content, ttl, prio, change_date)
-                                    VALUES (:domainId, :name, :type, :content, :ttl, :prio, :changeDate)');
+        $query = $this->db->prepare('INSERT INTO records (domain_id, name, type, content, ttl, prio)
+                                    VALUES (:domainId, :name, :type, :content, :ttl, :prio)');
         $query->bindValue(':domainId', $domain, \PDO::PARAM_INT);
         $query->bindValue(':name', $name, \PDO::PARAM_STR);
         $query->bindValue(':type', $type, \PDO::PARAM_STR);
         $query->bindValue(':content', $content, \PDO::PARAM_STR);
         $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
         $query->bindValue(':prio', $priority, \PDO::PARAM_INT);
-        $query->bindValue(':changeDate', time(), \PDO::PARAM_INT);
         $query->execute();
 
         $insertId = $this->db->lastInsertId();
@@ -354,7 +353,7 @@ class Records
 
         $this->db->beginTransaction();
 
-        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,ttl=:ttl,prio=:prio,change_date=:changeDate
+        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,ttl=:ttl,prio=:prio
                                     WHERE id=:recordId');
         $query->bindValue(':recordId', $recordId, \PDO::PARAM_INT);
         $query->bindValue(':name', $name, \PDO::PARAM_STR);
@@ -362,7 +361,6 @@ class Records
         $query->bindValue(':content', $content, \PDO::PARAM_STR);
         $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
         $query->bindValue(':prio', $priority, \PDO::PARAM_INT);
-        $query->bindValue(':changeDate', time(), \PDO::PARAM_INT);
         $query->execute();
 
         $soa = new \Operations\Soa($this->c);

@@ -82,14 +82,13 @@ class Soa
             $changeDate = strval(time());
 
             $query = $this->db->prepare('
-                INSERT INTO records (domain_id, name, type, content, ttl, change_date)
-                VALUES (:domainId, :name, \'SOA\', :content, :ttl, :changeDate)
+                INSERT INTO records (domain_id, name, type, content, ttl)
+                VALUES (:domainId, :name, \'SOA\', :content, :ttl)
             ');
             $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);
             $query->bindValue(':name', $domainName, \PDO::PARAM_STR);
             $query->bindValue(':content', $soaString, \PDO::PARAM_STR);
             $query->bindValue(':ttl', $ttl, \PDO::PARAM_STR);
-            $query->bindValue(':changeDate', $changeDate, \PDO::PARAM_INT);
             $query->execute();
         } else {
             $oldSerial = intval(explode(' ', $content['content'])[2]);
@@ -98,12 +97,11 @@ class Soa
             $soaString = implode(' ', $soaArray);
             $changeDate = strval(time());
 
-            $query = $this->db->prepare('UPDATE records SET content=:content, ttl=:ttl,
-                change_date=:changeDate WHERE domain_id=:domainId AND type=\'SOA\'');
+            $query = $this->db->prepare('UPDATE records SET content=:content, ttl=:ttl
+                                         WHERE domain_id=:domainId AND type=\'SOA\'');
             $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);
             $query->bindValue(':content', $soaString, \PDO::PARAM_STR);
             $query->bindValue(':ttl', $ttl, \PDO::PARAM_STR);
-            $query->bindValue(':changeDate', $changeDate, \PDO::PARAM_INT);
             $query->execute();
         }
 
