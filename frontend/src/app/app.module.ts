@@ -18,6 +18,7 @@ import { PagesizeComponent } from './partials/pagesize/pagesize.component';
 import { PagingComponent } from './partials/paging/paging.component';
 import { DomainsOperation } from './operations/domains.operations';
 import { PasswordOperation } from './operations/password.operations';
+import { LoggingOperation } from './operations/logging.operations';
 import { AuthGuard } from './services/auth-guard.service';
 import { FocusDirective } from './utils/focus.directive';
 import { BrowserModule } from '@angular/platform-browser';
@@ -46,6 +47,7 @@ import { SelectComponent } from './partials/select/select.component';
 import { CreateSlaveComponent } from './pages/create-slave/create-slave.component';
 import { UsersComponent } from './pages/users/users.component';
 import { SetupComponent } from './pages/setup/setup.component';
+import { LoggingComponent } from './pages/logging/logging.component';
 
 @NgModule({
   declarations: [
@@ -77,7 +79,8 @@ import { SetupComponent } from './pages/setup/setup.component';
     EditAuthAddComponent,
     EditCredentialsComponent,
     SetupComponent,
-    UpdateComponent
+    UpdateComponent,
+    LoggingComponent
   ],
   imports: [
     BrowserModule,
@@ -95,6 +98,7 @@ import { SetupComponent } from './pages/setup/setup.component';
     RecordsOperation,
     CredentialsOperation,
     UpdateOperation,
+    LoggingOperation,
     AuthGuard,
     AdminGuard,
     NativeGuard,

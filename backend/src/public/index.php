@@ -23,6 +23,8 @@ $container['db'] = new \Services\Database;
 $container['notFoundHandler'] = new \Controllers\NotFound;
 $container['notAllowedHandler'] = new \Controllers\NotAllowed;
 
+$container['logging'] = new \Operations\Logging($container);
+
 // Create application
 $app = new \Slim\App($container);
 
@@ -71,6 +73,8 @@ $app->group('/v1', function () {
         $this->get('/users/{user}/permissions', '\Controllers\Permissions:getList');
         $this->post('/users/{user}/permissions', '\Controllers\Permissions:postNew');
         $this->delete('/users/{user}/permissions/{domainId}', '\Controllers\Permissions:delete');
+
+        $this->get('/logging', '\Controllers\Logging:getList');
     })->add('\Middlewares\Authentication');
 });
 

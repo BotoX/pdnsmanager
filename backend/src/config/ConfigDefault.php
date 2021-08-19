@@ -38,7 +38,7 @@ $defaultConfig = [
         ]
     ],
     'proxys' => [],
-    'dbVersion' => 0
+    'dbVersion' => 1
 ];
 
 if (file_exists('../config/ConfigOverride.php')) {

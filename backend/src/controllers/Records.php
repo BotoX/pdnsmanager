@@ -66,6 +66,21 @@ class Records
 
         $records = new \Operations\Records($this->c);
 
+        // Check if CNAME already exists for this name
+        try {
+            $record = $records->findRecord($body['name'], 'CNAME', null, null, null, $body['domain']);
+            // Not OK
+            $this->logger->debug('User tries to add CNAME where CNAME exist.', ['name' => $body['name'], 'content' => $body['content']]);
+            return $res->withJson(['error' => 'CNAME already exists.'], 400);
+        } catch (\Exceptions\NotFoundException $e) {
+            // OK
+        } catch (\Exceptions\AmbiguousException $e) {
+            // Not OK
+            $this->logger->debug('User tries to add CNAME where multiple CNAME exist.', ['name' => $body['name'], 'content' => $body['content']]);
+            return $res->withJson(['error' => 'Multiple CNAME already exist.'], 400);
+        }
+
+
         try {
             $result = $records->addRecord($body['name'], $body['type'], $body['content'], $body['priority'], $body['ttl'], $body['domain']);
         } catch (\Exceptions\NotFoundException $e) {
@@ -75,6 +90,11 @@ class Records
             $this->logger->debug('User tries to add record with invalid type.', ['type' => $body['type']]);
             return $res->withJson(['error' => 'The provided type is invalid.'], 400);
         }
+        $this->c['logging']->addLog(
+            $body['domain'],
+            $userId,
+            'ADD: #' . $result['id'] . ' ' . $result['name'] . ' ' . $result['type'] . ' ' . $result['content']
+        );
 
         if (!$body['ptr']) {
             return $res->withJson($result, 201);
@@ -95,7 +115,12 @@ class Records
                 $record = $records->findRecord($reverse['arpa'], 'PTR', null, null, null, $reverse['id']);
             } catch (\Exceptions\NotFoundException $e) {
                 // PTR record does not exist, create it
-                $records->addRecord($reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl'], $reverse['id']);
+                $rresult = $records->addRecord($reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl'], $reverse['id']);
+                $this->c['logging']->addLog(
+                    $reverse['id'],
+                    $userId,
+                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                );
             } catch (\Exceptions\AmbiguousException $e) {
                 // Multiple matching records found, give up
                 return $res->withJson($result, 201);
@@ -103,7 +128,19 @@ class Records
 
             // Single PTR record exists, update it
             if (isset($record)) {
-                $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl']);
+                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl']);
+                $line = '';
+                $check = array('name', 'type', 'content', 'priority', 'ttl');
+                foreach ($check as $item) {
+                    if ($rresult['old'][$item] != $rresult['new'][$item]) {
+                        $line .= $item . ': "' . $rresult['old'][$item] . '"->"' . $rresult['new'][$item] . '" ';
+                    }
+                }
+                $this->c['logging']->addLog(
+                    $rresult['old']['domain'],
+                    $userId,
+                    'RUPD: #' . $rresult['old']['id'] . ' ' . $rresult['old']['name'] . ' ' . $line
+                );
             }
         }
 
@@ -127,6 +164,11 @@ class Records
         } catch (\Exceptions\NotFoundException $e) {
             return $res->withJson(['error' => 'No record found for id ' . $recordId], 404);
         }
+        $this->c['logging']->addLog(
+            $result['domain'],
+            $userId,
+            'DEL: #' . $result['id'] . ' ' . $result['name'] . ' ' . $result['type'] . ' ' . $result['content']
+        );
 
         $this->logger->info('Deleted record', ['id' => $recordId]);
 
@@ -153,7 +195,12 @@ class Records
 
             // Single PTR record exists, delete it
             if (isset($record)) {
-                $records->deleteRecord($record['id']);
+                $rresult = $records->deleteRecord($record['id']);
+                $this->c['logging']->addLog(
+                    $rresult['domain'],
+                    $userId,
+                    'RDEL: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
+                );
             }
         }
 
@@ -214,6 +261,18 @@ class Records
             $this->logger->debug('User tries to update record with invalid type.', ['type' => $type]);
             return $res->withJson(['error' => 'The provided type is invalid.'], 400);
         }
+        $line = '';
+        $check = array('name', 'type', 'content', 'priority', 'ttl');
+        foreach ($check as $item) {
+            if ($result['old'][$item] != $result['new'][$item]) {
+                $line .= $item . ': "' . $result['old'][$item] . '"->"' . $result['new'][$item] . '" ';
+            }
+        }
+        $this->c['logging']->addLog(
+            $result['old']['domain'],
+            $userId,
+            'UPD: #' . $result['old']['id'] . ' ' . $result['old']['name'] . ' ' . $line
+        );
 
         if (!$ptr) {
             return $res->withStatus(204);
@@ -244,17 +303,39 @@ class Records
                 // Reverse zone changed?
                 if ($reverse != $reverse_old) {
                     // Delete the old PTR record
-                    $records->deleteRecord($record['id']);
+                    $rresult = $records->deleteRecord($record['id']);
+                    $this->c['logging']->addLog(
+                        $rresult['domain'],
+                        $userId,
+                        'RDEL: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
+                    );
 
                     // New reverse zone exists?
                     if ($reverse != null) {
                         // Create a new PTR record in the new reverse zone
-                        $records->addRecord($reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], $reverse['id']);
+                        $rresult = $records->addRecord($reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], $reverse['id']);
+                        $this->c['logging']->addLog(
+                            $reverse['id'],
+                            $userId,
+                            'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                        );
                         return $res->withStatus(204);
                     }
                 } else {
                     // Reverse zone stayed the same, update existing PTR record
-                    $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                    $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                    $line = '';
+                    $check = array('name', 'type', 'content', 'priority', 'ttl');
+                    foreach ($check as $item) {
+                        if ($rresult['old'][$item] != $rresult['new'][$item]) {
+                            $line .= $item . ': "' . $rresult['old'][$item] . '"->"' . $rresult['new'][$item] . '" ';
+                        }
+                    }
+                    $this->c['logging']->addLog(
+                        $rresult['old']['domain'],
+                        $userId,
+                        'RUPD: #' . $rresult['old']['id'] . ' ' . $rresult['old']['name'] . ' ' . $line
+                    );
                     return $res->withStatus(204);
                 }
             } elseif ($reverse == null) {
@@ -269,7 +350,12 @@ class Records
                 $record = $records->findRecord($reverse['arpa'], 'PTR', null, null, null, $reverse['id']);
             } catch (\Exceptions\NotFoundException $e) {
                 // PTR record does not exist, create it
-                $records->addRecord($reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], $reverse['id']);
+                $rresult = $records->addRecord($reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], $reverse['id']);
+                $this->c['logging']->addLog(
+                    $reverse['id'],
+                    $userId,
+                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                );
                 return $res->withStatus(204);
             } catch (\Exceptions\AmbiguousException $e) {
                 // Multiple matching records found, give up
@@ -278,12 +364,29 @@ class Records
 
             // Found PTR record in new zone, update it
             if (isset($record)) {
-                $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                $line = '';
+                $check = array('name', 'type', 'content', 'priority', 'ttl');
+                foreach ($check as $item) {
+                    if ($rresult['old'][$item] != $rresult['new'][$item]) {
+                        $line .= $item . ': "' . $rresult['old'][$item] . '"->"' . $rresult['new'][$item] . '" ';
+                    }
+                }
+                $this->c['logging']->addLog(
+                    $rresult['old']['domain'],
+                    $userId,
+                    'RUPD: #' . $rresult['old']['id'] . ' ' . $rresult['old']['name'] . ' ' . $line
+                );
             }
         } elseif (isset($record)) {
             // Old reverse record exists but new record is not of type A or AAAA
             // Delete the old reverse record
-            $records->deleteRecord($record['id']);
+            $rresult = $records->deleteRecord($record['id']);
+            $this->c['logging']->addLog(
+                $rresult['domain'],
+                $userId,
+                'RDEL: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
+            );
         }
     }
 }

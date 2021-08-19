@@ -1,0 +1,50 @@
+<div class="row justify-content-end">
+    <div class="col-12 col-md-6 mt-2 mt-md-0">
+        <app-pagesize class="float-md-right" [pagesizes]="gs.pageSizes" [currentPagesize]="gs.pageSize" (pagesizeChange)="onPagesizeChange($event)"></app-pagesize>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive-lg">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th class="w-5 align-middle">
+                            <span>ID</span>
+                            <app-sort field="id" [activeFields]="sortField" (sort)="onSortEvent($event)"></app-sort>
+                        </th>
+                        <th class="w-15 align-middle">
+                            <span>Date</span>
+                        </th>
+                        <th class="w-10 align-middle">
+                            <div class="form-inline">
+                                <span>Domain</span>
+                                <input class="form-control form-control-sm no-shadow" type="text" placeholder="Search" [formControl]="domainFilter">
+                            </div>
+                        </th>
+                        <th class="align-middle">
+                            <span>Log</span>
+                            <input class="form-control form-control-sm no-shadow" type="text" placeholder="Search" [formControl]="logFilter">
+                        </th>
+                        <th class="w-10 align-middle">
+                            <div class="form-inline">
+                                <span>User</span>
+                                <input class="form-control form-control-sm no-shadow" type="text" placeholder="Search" [formControl]="userFilter">
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let log of logList">
+                        <td>{{ log.id }}</td>
+                        <td>{{ log.timestamp }}</td>
+                        <td>{{ log.domain_name }}</td>
+                        <td>{{ log.log }}</td>
+                        <td>{{ log.user_name }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<app-paging [pagingInfo]="pagingInfo" [pageWidth]="3" (pageChange)="onPageChange($event)"></app-paging>

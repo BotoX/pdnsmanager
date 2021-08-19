@@ -118,7 +118,6 @@ ALTER TABLE records ADD CONSTRAINT `records_domain_id_ibfk` FOREIGN KEY (`domain
 ALTER TABLE comments ADD CONSTRAINT `comments_domain_id_ibfk` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE domainmetadata ADD CONSTRAINT `domainmetadata_domain_id_ibfk` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE cryptokeys ADD CONSTRAINT `cryptokeys_domain_id_ibfk` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
 -- --------------------------------------------------------
 
 --
@@ -150,7 +149,7 @@ CREATE TABLE `options` (
 --
 
 INSERT INTO `options` (`name`, `value`) VALUES
-('schema_version', '0');
+('schema_version', '1');
 
 -- --------------------------------------------------------
 
@@ -217,6 +216,7 @@ INSERT INTO `remote` (`id`, `record`, `description`, `type`, `security`, `nonce`
 -- Tabellenstruktur für Tabelle `users`
 --
 
+DROP TABLE IF EXISTS `logging`;
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
@@ -224,6 +224,15 @@ CREATE TABLE `users` (
   `backend` varchar(50) NOT NULL,
   `type` varchar(20) NOT NULL,
   `password` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `logging` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `domain_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `timestamp` datetime NOT NULL,
+  `log` varchar(2000) NOT NULL,
+  PRIMARY KEY(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -296,6 +305,11 @@ ALTER TABLE `permissions`
 --
 ALTER TABLE `remote`
   ADD CONSTRAINT `remote_ibfk_1` FOREIGN KEY (`record`) REFERENCES `records` (`id`);
+
+ALTER TABLE `logging`
+  ADD CONSTRAINT `logging_domain_id_ibfk` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `logging_user_id_ibfk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
 SET FOREIGN_KEY_CHECKS=1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

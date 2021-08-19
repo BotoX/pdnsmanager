@@ -17,6 +17,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { LoginComponent } from './pages/login/login.component';
 import { EditAuthComponent } from './pages/edit-auth/edit-auth.component';
 import { SetupComponent } from './pages/setup/setup.component';
+import { LoggingComponent } from './pages/logging/logging.component';
 
 const routes: Routes = [
     {
@@ -107,6 +108,11 @@ const routes: Routes = [
             {
                 path: 'password',
                 component: PasswordComponent,
+                canActivate: [NativeGuard]
+            },
+            {
+                path: 'logging',
+                component: LoggingComponent,
                 canActivate: [NativeGuard]
             },
             {
