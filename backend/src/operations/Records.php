@@ -295,7 +295,7 @@ class Records
             $query->bindValue(':name', $name, \PDO::PARAM_STR);
         }
         if ($type !== null) {
-            $query->bindValue(':type', $type, \PDO::PARAM_INT);
+            $query->bindValue(':type', $type, \PDO::PARAM_STR);
         }
         if ($content !== null) {
             $query->bindValue(':content', $content, \PDO::PARAM_STR);
