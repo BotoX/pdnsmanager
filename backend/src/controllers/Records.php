@@ -119,7 +119,7 @@ class Records
                 $this->c['logging']->addLog(
                     $reverse['id'],
                     $userId,
-                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
                 );
             } catch (\Exceptions\AmbiguousException $e) {
                 // Multiple matching records found, give up
@@ -317,7 +317,7 @@ class Records
                         $this->c['logging']->addLog(
                             $reverse['id'],
                             $userId,
-                            'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                            'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
                         );
                         return $res->withStatus(204);
                     }
@@ -354,7 +354,7 @@ class Records
                 $this->c['logging']->addLog(
                     $reverse['id'],
                     $userId,
-                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . $rresult['type'] . $rresult['content']
+                    'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
                 );
                 return $res->withStatus(204);
             } catch (\Exceptions\AmbiguousException $e) {
