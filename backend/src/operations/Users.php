@@ -39,8 +39,6 @@ class Users
     {
         $config = $this->c['config']['authentication'];
 
-        $this->db->beginTransaction();
-
         $nameQuery = $nameQuery !== null ? '%' . $nameQuery . '%' : '%';
 
         //Count elements
@@ -84,8 +82,6 @@ class Users
         $query->execute();
 
         $data = $query->fetchAll();
-
-        $this->db->commit();
 
         $dataTransformed = array_map(
             function ($item) use ($config) {
@@ -136,8 +132,6 @@ class Users
             throw new \Exceptions\SemanticException();
         }
 
-        $this->db->beginTransaction();
-
         $query = $this->db->prepare('SELECT id FROM users WHERE name=:name AND backend=\'native\'');
         $query->bindValue(':name', $name, \PDO::PARAM_STR);
         $query->execute();
@@ -145,11 +139,12 @@ class Users
         $record = $query->fetch();
 
         if ($record !== false) { // Domain already exists
-            $this->db->rollBack();
             throw new \Exceptions\AlreadyExistentException();
         }
 
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        $this->db->beginTransaction();
 
         $query = $this->db->prepare('INSERT INTO users (name, backend, type, password) VALUES(:name, \'native\', :type, :password)');
         $query->bindValue(':name', $name, \PDO::PARAM_STR);
@@ -178,18 +173,20 @@ class Users
      * 
      * @throws  NotFoundException   if user does not exist
      */
-    public function deleteDomain(int $id) : void
+    public function deleteUser(int $id) : array
     {
-        $this->db->beginTransaction();
-
-        $query = $this->db->prepare('SELECT id FROM users WHERE id=:id');
+        $query = $this->db->prepare('SELECT id,name,type FROM users WHERE id=:id');
         $query->bindValue(':id', $id, \PDO::PARAM_INT);
         $query->execute();
 
-        if ($query->fetch() === false) { //User does not exist
-            $this->db->rollBack();
+        $record = $query->fetch();
+
+        if ($record === false) { //User does not exist
             throw new \Exceptions\NotFoundException();
         }
+        $record['id'] = intval($record['id']);
+
+        $this->db->beginTransaction();
 
         $query = $this->db->prepare('DELETE FROM permissions WHERE user_id=:id');
         $query->bindValue(':id', $id, \PDO::PARAM_INT);
@@ -200,6 +197,8 @@ class Users
         $query->execute();
 
         $this->db->commit();
+
+        return $record;
     }
 
     /**
@@ -262,10 +261,8 @@ class Users
      * @throws  NotFoundException           The given record does not exist
      * @throws  AlreadyExistentException    The given record name does already exist
      */
-    public function updateUser(int $userId, ? string $name, ? string $type, ? string $password)
+    public function updateUser(int $userId, ? string $name, ? string $type, ? string $password) : array
     {
-        $this->db->beginTransaction();
-
         $query = $this->db->prepare('SELECT id,name,type,backend,password FROM users WHERE id=:userId');
         $query->bindValue(':userId', $userId);
         $query->execute();
@@ -273,7 +270,6 @@ class Users
         $record = $query->fetch();
 
         if ($record === false) {
-            $this->db->rollBack();
             throw new \Exceptions\NotFoundException();
         }
 
@@ -297,6 +293,10 @@ class Users
         $type = $type === null ? $record['type'] : $type;
         $password = $password === null ? $record['password'] : password_hash($password, PASSWORD_DEFAULT);
 
+        $record = $this->getUser($userId);
+
+        $this->db->beginTransaction();
+
         $query = $this->db->prepare('UPDATE users SET name=:name,type=:type,password=:password WHERE id=:userId');
         $query->bindValue(':userId', $userId);
         $query->bindValue(':name', $name);
@@ -305,5 +305,10 @@ class Users
         $query->execute();
 
         $this->db->commit();
+
+        return array(
+            "old" => $record,
+            "new" => $this->getUser($userId)
+        );
     }
 }

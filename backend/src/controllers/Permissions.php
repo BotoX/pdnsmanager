@@ -45,7 +45,8 @@ class Permissions
     public function postNew(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to add permissions');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -60,11 +61,17 @@ class Permissions
         $user = intval($args['user']);
 
         $permissions = new \Operations\Permissions($this->c);
+        $users = new \Operations\Users($this->c);
 
         try {
             $permissions->addPermission($user, $body['domainId']);
-
-            $this->logger->info('Permission was added:', ['by' => $req->getAttribute('userId'), 'user' => $user, 'domain' => $body['domainId']]);
+            $userObj = $users->getUser($user);
+            $this->c['logging']->addLog(
+                $body['domainId'],
+                $userId,
+                'ADD PERM: ' . $userObj['name'] . '(' . $userObj['id'] . ')'
+            );
+            $this->logger->info('Permission was added:', ['by' => $userId, 'user' => $user, 'domain' => $body['domainId']]);
             return $res->withStatus(204);
         } catch (\Exceptions\NotFoundException $e) {
             return $res->withJson(['error' => 'Either domain or user were not found'], 404);
@@ -74,7 +81,8 @@ class Permissions
     public function delete(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to add permissions');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -83,11 +91,17 @@ class Permissions
         $domainId = intval($args['domainId']);
 
         $permissions = new \Operations\Permissions($this->c);
+        $users = new \Operations\Users($this->c);
 
         try {
             $permissions->deletePermission($user, $domainId);
-
-            $this->logger->info('Permission was removed:', ['by' => $req->getAttribute('userId'), 'user' => $user, 'domain' => $domainId]);
+            $userObj = $users->getUser($user);
+            $this->c['logging']->addLog(
+                $domainId,
+                $userId,
+                'DEL PERM: ' . $userObj['name'] . '(' . $userObj['id'] . ')'
+            );
+            $this->logger->info('Permission was removed:', ['by' => $userId, 'user' => $user, 'domain' => $domainId]);
             return $res->withStatus(204);
         } catch (\Exceptions\NotFoundException $e) {
             return $res->withJson(['error' => 'Either domain or user were not found'], 404);

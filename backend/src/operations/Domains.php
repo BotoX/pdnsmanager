@@ -154,9 +154,11 @@ class Domains
         $query->bindValue(':type', $type, \PDO::PARAM_STR);
         $query->execute();
 
+        $insertId = $this->db->lastInsertId();
 
-        $query = $this->db->prepare('SELECT id,name,type,master FROM domains WHERE name=:name');
-        $query->bindValue(':name', $name, \PDO::PARAM_STR);
+
+        $query = $this->db->prepare('SELECT id,name,type,master FROM domains WHERE id=:insertId');
+        $query->bindValue(':insertId', $insertId, \PDO::PARAM_INT);
         $query->execute();
 
         $record = $query->fetch();
@@ -179,18 +181,22 @@ class Domains
      * 
      * @throws  NotFoundException   if domain does not exist
      */
-    public function deleteDomain(int $id) : void
+    public function deleteDomain(int $id) : array
     {
-        $this->db->beginTransaction();
-
-        $query = $this->db->prepare('SELECT id FROM domains WHERE id=:id');
+        $query = $this->db->prepare('SELECT id,name,type,master FROM domains WHERE id=:id');
         $query->bindValue(':id', $id, \PDO::PARAM_INT);
         $query->execute();
 
-        if ($query->fetch() === false) { //Domain does not exist
-            $this->db->rollBack();
+        $record = $query->fetch();
+        if ($record === false) { // Domain does not exist
             throw new \Exceptions\NotFoundException();
         }
+        $record['id'] = intval($record['id']);
+        if ($record['type'] !== 'SLAVE') {
+            unset($record['master']);
+        }
+
+        $this->db->beginTransaction();
 
         $query = $this->db->prepare('
             DELETE E FROM remote E
@@ -208,6 +214,8 @@ class Domains
         $query->execute();
 
         $this->db->commit();
+
+        return $record;
     }
 
     /**

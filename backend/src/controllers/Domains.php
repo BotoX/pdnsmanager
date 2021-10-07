@@ -43,7 +43,8 @@ class Domains
     public function postNew(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to add domain');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -66,6 +67,11 @@ class Domains
             $result = $domains->addDomain($name, $type, $master);
 
             $this->logger->info('Created domain', $result);
+            $this->c['logging']->addLog(
+                $result['id'],
+                $userId,
+                'ADD DOMAIN: #' . $result['id'] . ' ' . $result['name'] . ' ' . $result['type']
+            );
             return $res->withJson($result, 201);
         } catch (\Exceptions\AlreadyExistentException $e) {
             $this->logger->debug('Zone with name ' . $name . ' already exists.');
@@ -79,7 +85,8 @@ class Domains
     public function delete(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to delete domain');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -89,9 +96,15 @@ class Domains
         $domainId = intval($args['domainId']);
 
         try {
-            $domains->deleteDomain($domainId);
+            $result = $domains->deleteDomain($domainId);
 
-            $this->logger->info('Deleted domain', ['id' => $domainId]);
+            $this->logger->info('Deleted domain', $result);
+            $this->c['logging']->addLog(
+                $result['id'],
+                $userId,
+                'DEL DOMAIN: #' . $result['id'] . ' ' . $result['name'] . ' ' . $result['type'],
+                true
+            );
             return $res->withStatus(204);
         } catch (\Exceptions\NotFoundException $e) {
             return $res->withJson(['error' => 'No domain found for id ' . $domainId], 404);

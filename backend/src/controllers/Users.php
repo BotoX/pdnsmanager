@@ -47,7 +47,8 @@ class Users
     public function postNew(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to add user');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -71,6 +72,12 @@ class Users
             $result = $users->addUser($name, $type, $password);
 
             $this->logger->info('Created user', $result);
+            $this->c['logging']->addLog(
+                null,
+                $userId,
+                'ADD USER: ' . $result['name'] . '(' . $result['id'] . ')(' . $result['type'] . ')',
+                true
+            );
             return $res->withJson($result, 201);
         } catch (\Exceptions\AlreadyExistentException $e) {
             $this->logger->debug('User with name ' . $name . ' already exists.');
@@ -84,7 +91,8 @@ class Users
     public function delete(Request $req, Response $res, array $args)
     {
         $ac = new \Operations\AccessControl($this->c);
-        if (!$ac->isAdmin($req->getAttribute('userId'))) {
+        $userId = $req->getAttribute('userId');
+        if (!$ac->isAdmin($userId)) {
             $this->logger->info('Non admin user tries to delete user');
             return $res->withJson(['error' => 'You must be admin to use this feature'], 403);
         }
@@ -94,8 +102,13 @@ class Users
         $user = intval($args['user']);
 
         try {
-            $users->deleteDomain($user);
-
+            $result = $users->deleteUser($user);
+            $this->c['logging']->addLog(
+                null,
+                $userId,
+                'DEL USER: ' . $result['name'] . '(' . $result['id'] . ')',
+                true
+            );
             $this->logger->info('Deleted user', ['id' => $user]);
             return $res->withStatus(204);
         } catch (\Exceptions\NotFoundException $e) {
@@ -136,11 +149,12 @@ class Users
         $password = array_key_exists('password', $body) ? $body['password'] : null;
 
         $ac = new \Operations\AccessControl($this->c);
+        $userId = $req->getAttribute('userId');
         if ($args['user'] === 'me') {
-            $user = $req->getAttribute('userId');
+            $user = $userId;
             $name = null;
             $type = null;
-        } elseif ($ac->isAdmin($req->getAttribute('userId'))) {
+        } elseif ($ac->isAdmin($userId)) {
             $user = intval($args['user']);
         } else {
             $this->logger->info('Non admin user tries to get other user');
@@ -151,7 +165,21 @@ class Users
 
         try {
             $result = $users->updateUser($user, $name, $type, $password);
-
+            $line = '';
+            $check = array('name', 'type');
+            foreach ($check as $item) {
+                if ($result['old'][$item] != $result['new'][$item]) {
+                    $line .= $item . ': "' . $result['old'][$item] . '"->"' . $result['new'][$item] . '" ';
+                }
+            }
+            if ($line != '') {
+                $this->c['logging']->addLog(
+                    null,
+                    $userId,
+                    'UPD USER: ' . $result['old']['name'] . '(' . $result['old']['id'] . ') ' . $line,
+                    true
+                );
+            }
             $this->logger->debug('Update user', ['id' => $user]);
             return $res->withStatus(204);
         } catch (\Exceptions\NotFoundException $e) {

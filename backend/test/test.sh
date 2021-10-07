@@ -14,8 +14,8 @@ return [
         'dbname' => '$DBNAME'
     ],
     'logging' => [
-        'level' => 'error',
-        'path' => '../../test/logfile.log'
+        'level' => 'info',
+        'path' => ''
     ],
     'authentication' => [
         'native' => [

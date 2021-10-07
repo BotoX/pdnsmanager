@@ -228,7 +228,7 @@ CREATE TABLE `users` (
 
 CREATE TABLE `logging` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `domain_id` int(11) NOT NULL,
+  `domain_id` int(11),
   `user_id` int(11) NOT NULL,
   `timestamp` datetime NOT NULL,
   `log` varchar(2000) NOT NULL,
@@ -305,10 +305,6 @@ ALTER TABLE `permissions`
 --
 ALTER TABLE `remote`
   ADD CONSTRAINT `remote_ibfk_1` FOREIGN KEY (`record`) REFERENCES `records` (`id`);
-
-ALTER TABLE `logging`
-  ADD CONSTRAINT `logging_domain_id_ibfk` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `logging_user_id_ibfk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 SET FOREIGN_KEY_CHECKS=1;
 

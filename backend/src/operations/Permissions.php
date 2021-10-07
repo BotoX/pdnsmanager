@@ -35,8 +35,6 @@ class Permissions
      */
     public function getPermissions(\Utils\PagingInfo &$pi, int $userId) : array
     {
-        $this->db->beginTransaction();
-
         //Count elements
         if ($pi->pageSize === null) {
             $pi->totalPages = 1;
@@ -65,8 +63,6 @@ class Permissions
 
         $data = $query->fetchAll();
 
-        $this->db->commit();
-
         return $data;
     }
 
@@ -82,13 +78,10 @@ class Permissions
      */
     public function addPermission(int $userId, int $domainId) : void
     {
-        $this->db->beginTransaction();
-
         $query = $this->db->prepare('SELECT id FROM users WHERE id=:userId');
         $query->bindValue(':userId', $userId, \PDO::PARAM_INT);
         $query->execute();
         if ($query->fetch() === false) {
-            $this->db->rollBack();
             throw new \Exceptions\NotFoundException();
         }
 
@@ -96,7 +89,6 @@ class Permissions
         $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);
         $query->execute();
         if ($query->fetch() === false) {
-            $this->db->rollBack();
             throw new \Exceptions\NotFoundException();
         }
 
@@ -105,13 +97,15 @@ class Permissions
         $query->bindValue(':userId', $userId, \PDO::PARAM_INT);
         $query->execute();
         if ($query->fetch() === false) {
+            $this->db->beginTransaction();
+
             $query = $this->db->prepare('INSERT INTO permissions (domain_id,user_id) VALUES (:domainId, :userId)');
             $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);
             $query->bindValue(':userId', $userId, \PDO::PARAM_INT);
             $query->execute();
-        }
 
-        $this->db->commit();
+            $this->db->commit();
+        }
     }
 
     /**
@@ -126,16 +120,15 @@ class Permissions
      */
     public function deletePermission(int $userId, int $domainId) : void
     {
-        $this->db->beginTransaction();
-
         $query = $this->db->prepare('SELECT * FROM permissions WHERE domain_id=:domainId AND user_id=:userId');
         $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);
         $query->bindValue(':userId', $userId, \PDO::PARAM_INT);
         $query->execute();
         if ($query->fetch() === false) {
-            $this->db->rollBack();
             throw new \Exceptions\NotFoundException();
         }
+
+        $this->db->beginTransaction();
 
         $query = $this->db->prepare('DELETE FROM permissions WHERE domain_id=:domainId AND user_id=:userId');
         $query->bindValue(':domainId', $domainId, \PDO::PARAM_INT);

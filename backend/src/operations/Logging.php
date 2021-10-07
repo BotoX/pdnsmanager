@@ -49,13 +49,13 @@ class Logging
         $ac = new \Operations\AccessControl($this->c);
         $userIsAdmin = $ac->isAdmin($userId);
 
-        $domain = $domain === null ? '%' : '%' . $domain . '%';
-        $user = $user === null ? '%' : '%' . $user . '%';
-        $log = $log === null ? '%' : '%' . $log . '%';
+        $domain_ = $domain === null ? '%' : '%' . $domain . '%';
+        $user_ = $user === null ? '%' : '%' . $user . '%';
+        $log_ = $log === null ? '%' : '%' . $log . '%';
 
-        $setDomains = \Services\Database::makeSetString($this->db, $domain);
-        $setUsers = \Services\Database::makeSetString($this->db, $user);
-        $setLog = \Services\Database::makeSetString($this->db, $log);
+        $setDomains = \Services\Database::makeSetString($this->db, $domain_);
+        $setUsers = \Services\Database::makeSetString($this->db, $user_);
+        $setLog = \Services\Database::makeSetString($this->db, $log_);
 
         //Count elements
         if ($pi->pageSize === null) {
@@ -133,19 +133,19 @@ class Logging
      * 
      * @throws  NotFoundException   if the domain or user does not exist
      */
-    public function addLog(int $domain, int $user, string $log) : array
+    public function addLog(? int $domain, int $user, string $log, bool $force = false) : array
     {
-        $query = $this->db->prepare('SELECT id FROM domains WHERE id=:id AND type IN (\'MASTER\',\'NATIVE\')');
+        $query = $this->db->prepare('SELECT id FROM domains WHERE id=:id');
         $query->bindValue(':id', $domain, \PDO::PARAM_INT);
         $query->execute();
-        if ($query->fetch() === false) { // Domain does not exist
+        if ($query->fetch() === false && !$force) { // Domain does not exist
             throw new \Exceptions\NotFoundException();
         }
 
         $query = $this->db->prepare('SELECT id FROM users WHERE id=:id');
         $query->bindValue(':id', $user, \PDO::PARAM_INT);
         $query->execute();
-        if ($query->fetch() === false) { // User does not exist
+        if ($query->fetch() === false && !$force) { // User does not exist
             throw new \Exceptions\NotFoundException();
         }
 
