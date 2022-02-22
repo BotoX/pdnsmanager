@@ -100,7 +100,7 @@ class Domains
 
             $this->logger->info('Deleted domain', $result);
             $this->c['logging']->addLog(
-                $result['id'],
+                null,
                 $userId,
                 'DEL DOMAIN: #' . $result['id'] . ' ' . $result['name'] . ' ' . $result['type'],
                 true
