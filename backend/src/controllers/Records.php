@@ -64,13 +64,30 @@ class Records
             return $res->withJson(['error' => 'You have no permissions for the given domain.'], 403);
         }
 
+        // Validate and filter user input
+        $body['name'] = trim($body['name']);
+        if ($body['type'] == 'A' || $body['type'] == 'AAAA' || $body['type'] == 'CNAME') {
+            $body['content'] = trim($body['content']);
+        }
+        if ($body['type'] == 'A' && !filter_var($body['content'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return $res->withJson(['error' => 'Invalid IPv4 address.'], 400);
+        }
+        if ($body['type'] == 'AAAA' && !filter_var($body['content'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
+        }
+
         $records = new \Operations\Records($this->c);
 
         // Check if CNAME already exists for this name
         try {
-            $record = $records->findRecord($body['name'], 'CNAME', null, null, null, $body['domain']);
+            // If adding CNAME, check if any record exists
+            if ($body['type'] == 'CNAME') {
+                $record = $records->findRecord($body['name'], null, null, null, null, $body['domain']);
+            } else {
+                $record = $records->findRecord($body['name'], 'CNAME', null, null, null, $body['domain']);
+            }
             // Not OK
-            $this->logger->debug('User tries to add CNAME where CNAME exist.', ['name' => $body['name'], 'content' => $body['content']]);
+            $this->logger->debug('User tries to add record where CNAME exist.', ['name' => $body['name'], 'content' => $body['content']]);
             return $res->withJson(['error' => 'CNAME already exists.'], 400);
         } catch (\Exceptions\NotFoundException $e) {
             // OK
@@ -79,7 +96,6 @@ class Records
             $this->logger->debug('User tries to add CNAME where multiple CNAME exist.', ['name' => $body['name'], 'content' => $body['content']]);
             return $res->withJson(['error' => 'Multiple CNAME already exist.'], 400);
         }
-
 
         try {
             $result = $records->addRecord($body['name'], $body['type'], $body['content'], $body['priority'], $body['ttl'], $body['domain']);
@@ -251,6 +267,48 @@ class Records
         $ptr = array_key_exists('ptr', $body) ? $body['ptr'] : null;
 
         $records = new \Operations\Records($this->c);
+
+        // Fill from current record if not available
+        $result = $records->getRecord($recordId);
+        if ($content !== null && $type === null) {
+            $type = $result['type'];
+        }
+        if ($type !== null && $content === null) {
+            $content = $result['content'];
+        }
+        if ($name === null) {
+            $name = $result['name'];
+        }
+
+        // Validate and filter user input
+        if ($type == 'A' || $type == 'AAAA' || $type == 'CNAME') {
+            $content = trim($content);
+        }
+        if ($type == 'A' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return $res->withJson(['error' => 'Invalid IPv4 address.'], 400);
+        }
+        if ($type == 'AAAA' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
+        }
+
+        // Check if CNAME already exists for this name
+        try {
+            // If adding CNAME, check if any record exists
+            if ($type == 'CNAME') {
+                $record = $records->findRecord($name, null, null, null, null, $result['domain'], $result['id']);
+            } else {
+                $record = $records->findRecord($name, 'CNAME', null, null, null, $result['domain'], $result['id']);
+            }
+            // Not OK
+            $this->logger->debug('User tries to add record where CNAME exist.', ['name' => $name, 'content' => $content]);
+            return $res->withJson(['error' => 'CNAME already exists.'], 400);
+        } catch (\Exceptions\NotFoundException $e) {
+            // OK
+        } catch (\Exceptions\AmbiguousException $e) {
+            // Not OK
+            $this->logger->debug('User tries to add CNAME where multiple CNAME exist.', ['name' => $name, 'content' => $content]);
+            return $res->withJson(['error' => 'Multiple CNAME already exist.'], 400);
+        }
 
         try {
             $result = $records->updateRecord($recordId, $name, $type, $content, $priority, $ttl);

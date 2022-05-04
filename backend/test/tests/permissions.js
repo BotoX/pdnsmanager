@@ -24,15 +24,15 @@ test.run(async function () {
         assert.equal(res.status, 200, 'Get of permissions should be OK');
         assert.equal(res.data.results, [
             {
-                domainId: '1',
+                domainId: 1,
                 domainName: 'example.com'
             },
             {
-                domainId: '2',
+                domainId: 2,
                 domainName: 'slave.example.net'
             },
             {
-                domainId: '6',
+                domainId: 6,
                 domainName: '.arpa'
             }
         ], 'Get permissions result fail');

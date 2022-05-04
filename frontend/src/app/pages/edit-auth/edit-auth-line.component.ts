@@ -38,8 +38,11 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
     }
 
     ngOnChanges(changes: SimpleChanges): void {
+        this.resetInput();
         this.editMode = false;
+    }
 
+    public resetInput() {
         this.inputName.reset(this.recordPart());
         this.inputType.reset(this.entry.type);
         this.inputContent.reset(this.entry.content);
@@ -56,7 +59,9 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
     }
 
     public async onEditClick() {
-        this.editMode = true;
+        this.editMode = !this.editMode;
+        this.resetInput();
+        this.entry.new = false;
     }
 
     public domainPart(): string {
@@ -77,9 +82,12 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
     }
 
     public async onSave(ptr) {
-        await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
-            this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value);
+        if (!await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
+                this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value)) {
+            return;
+        }
 
+        this.entry.new = true;
         this.editMode = false;
         this.recordUpdated.emit();
     }

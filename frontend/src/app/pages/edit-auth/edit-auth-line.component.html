@@ -1,5 +1,6 @@
 <td>
     <span>{{ entry.id }}</span>
+    <app-fa-icon *ngIf="editMode" class="cursor-pointer mx-1" icon="close" appStopPropagateClick (click)="onEditClick()"></app-fa-icon>
 </td>
 <td class="align-middle py-0">
     <div class="text-nowrap overflow-hidden" *ngIf="!editMode">{{ fullName() }}</div>

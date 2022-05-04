@@ -95,7 +95,7 @@ export class RecordsOperation {
             return result;
         } catch (e) {
             console.error(e);
-            return new RecordApitype({});
+            return null;
         }
     }
 }

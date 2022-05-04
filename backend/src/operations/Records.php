@@ -266,7 +266,7 @@ class Records
      * @throws  SemanticException   The given record type is invalid
      * @throws  AmbiguousException  if more than one record matches the search
      */
-    public function findRecord(? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl, int $domain) : array
+    public function findRecord(? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl, int $domain, ? int $exceptId = null) : array
     {
         if ($type !== null && !in_array($type, $this->c['config']['records']['allowedTypes'])) {
             throw new \Exceptions\SemanticException();
@@ -288,6 +288,9 @@ class Records
         if ($ttl !== null) {
             $queryStr .= ' AND ttl = :ttl';
         }
+        if ($exceptId !== null) {
+            $queryStr .= ' AND id != :exceptId';
+        }
 
         $query = $this->db->prepare($queryStr);
         $query->bindValue(':domain', $domain, \PDO::PARAM_INT);
@@ -305,6 +308,9 @@ class Records
         }
         if ($ttl !== null) {
             $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
+        }
+        if ($exceptId !== null) {
+            $query->bindValue(':exceptId', $exceptId, \PDO::PARAM_INT);
         }
         $query->execute();
 

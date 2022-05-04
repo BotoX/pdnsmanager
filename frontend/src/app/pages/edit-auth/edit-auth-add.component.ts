@@ -14,7 +14,7 @@ export class EditAuthAddComponent implements OnInit {
 
     @Input() domain: DomainApitype;
 
-    @Output() recordAdded = new EventEmitter<void>();
+    @Output() recordAdded = new EventEmitter<RecordApitype>();
 
     public inputName: FormControl;
     public inputType: FormControl;
@@ -55,11 +55,16 @@ export class EditAuthAddComponent implements OnInit {
     }
 
     public async onSave(ptr) {
-        await this.records.create(this.domain.id, this.fullName(), this.inputType.value,
-            this.inputContent.value, this.inputPriority.value, this.inputTtl.value, ptr);
+        const res = await this.records.create(this.domain.id, this.fullName(), this.inputType.value,
+                this.inputContent.value, this.inputPriority.value, this.inputTtl.value, ptr);
 
-        this.recordAdded.emit();
+        if (!res) {
+            return;
+        }
+        res.new = true;
 
-        this.resetForm();
+        this.recordAdded.emit(res);
+
+        // this.resetForm();
     }
 }

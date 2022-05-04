@@ -116,11 +116,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr app-edit-auth-line *ngFor="let record of recordList" [entry]="record" [domain]="domain" (recordUpdated)="updateSerial()"
+                    <tr app-edit-auth-line *ngFor="let record of recordList" [entry]="record" [domain]="domain" [ngClass]="{'table-success': record.new}" (recordUpdated)="updateSerial()"
                         (recordDeleted)="updateSerial(); loadRecords();"></tr>
                 </tbody>
                 <tfoot>
-                    <tr app-edit-auth-add [domain]="domain" (recordAdded)="updateSerial(); loadRecords();"></tr>
+                    <tr app-edit-auth-add [domain]="domain" (recordAdded)="updateSerial(); recordList.push($event)"></tr>
                 </tfoot>
             </table>
         </div>

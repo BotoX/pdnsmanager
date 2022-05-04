@@ -131,6 +131,16 @@ export class HttpService {
             this.router.navigate(['/']);
 
             return true;
+        } else if (e.response && e.response.status !== 200 && e.response.data.hasOwnProperty('error')) {
+            await this.modal.showMessage(new ModalOptionsDatatype({
+                heading: e.response.status + ' - ' + e.response.statusText,
+                body: e.response.data['error'],
+                acceptText: 'OK',
+                acceptClass: 'warning',
+                dismisText: ''
+            }));
+
+            return false;
         } else {
             return false;
         }

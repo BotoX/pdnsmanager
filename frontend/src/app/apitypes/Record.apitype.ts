@@ -14,6 +14,8 @@ export class RecordApitype {
 
     public domain = 0;
 
+    public new = false;
+
     constructor(init: Object) {
         Object.assign(this, init);
     }
