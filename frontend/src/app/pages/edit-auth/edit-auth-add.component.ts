@@ -48,6 +48,9 @@ export class EditAuthAddComponent implements OnInit {
 
     public fullName(): string {
         if (this.inputName.value !== '') {
+            if (this.inputName.value.endsWith('.' + this.domain.name)) {
+                return this.inputName.value;
+            }
             return this.inputName.value + '.' + this.domain.name;
         } else {
             return this.domain.name;
