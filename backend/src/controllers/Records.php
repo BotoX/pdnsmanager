@@ -324,7 +324,7 @@ class Records
         $check = array('name', 'type', 'content', 'priority', 'ttl', 'disabled');
         foreach ($check as $item) {
             if ($result['old'][$item] != $result['new'][$item]) {
-                $line .= $item . ': "' . var_export($result['old'][$item], true) . '"->"' . var_export($result['new'][$item], true) . '" ';
+                $line .= $item . ': "' . $result['old'][$item] . '"->"' . $result['new'][$item] . '" ';
             }
         }
         $this->c['logging']->addLog(

@@ -130,6 +130,7 @@ class Records
             $item['priority'] = intval($item['priority']);
             $item['ttl'] = intval($item['ttl']);
             $item['domain'] = intval($item['domain']);
+            $item['disabled'] = boolval($item['disabled']);
             return $item;
         }, $data);
     }
