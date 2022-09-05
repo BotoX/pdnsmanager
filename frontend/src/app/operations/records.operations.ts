@@ -50,7 +50,7 @@ export class RecordsOperation {
     }
 
     public async updateRecord(recordId: number,  ptr: boolean, name?: string, type?: string, content?: string,
-        priority?: number, ttl?: number): Promise<boolean> {
+        priority?: number, ttl?: number, disabled?: boolean): Promise<boolean> {
         const data = {};
         if (name !== null && name !== undefined) {
             data['name'] = name;
@@ -66,6 +66,9 @@ export class RecordsOperation {
         }
         if (ttl !== null && ttl !== undefined) {
             data['ttl'] = ttl;
+        }
+        if (disabled !== null && disabled !== undefined) {
+            data['disabled'] = disabled;
         }
         data['ptr'] = ptr;
 

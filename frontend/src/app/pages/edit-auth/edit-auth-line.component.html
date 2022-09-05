@@ -42,6 +42,7 @@
         <app-fa-icon class="cursor-pointer mx-1" icon="edit" appStopPropagateClick (click)="onEditClick()"></app-fa-icon>
         <app-fa-icon class="cursor-pointer mx-1" icon="trash" appStopPropagateClick (click)="onDeleteClick($event)"></app-fa-icon>
         <app-fa-icon class="cursor-pointer mx-1" icon="key" appStopPropagateClick (click)="onRemoteClick()"></app-fa-icon>
+        <app-fa-icon class="cursor-pointer mx-1" icon="ban" alt="Disable/Enable" appStopPropagateClick (click)="onToggleClick()"></app-fa-icon>
     </span>
     <span *ngIf="editMode">
         <button class="btn btn-primary btn-sm" (click)="onSave(false)">Save</button>

@@ -32,6 +32,7 @@ class Remote
     {
         $record = $req->getParam('record');
         $content = $req->getParam('content');
+        $disabled = $req->getParam('disabled');
         $password = $req->getParam('password');
 
         if ($record === null || $content === null || $password === null) {
@@ -41,7 +42,7 @@ class Remote
         $remote = new \Operations\Remote($this->c);
 
         try {
-            $remote->updatePassword(intval($record), $content, $password);
+            $remote->updatePassword(intval($record), $content, $disabled, $password);
         } catch (\Exceptions\NotFoundException $e) {
             $this->logger->debug('User tried to update non existent record via changepw api.');
             return $res->withJson(['error' => 'The given record does not exist.'], 404);
@@ -58,8 +59,11 @@ class Remote
     {
         $record = $req->getParsedBodyParam('record');
         $content = $req->getParsedBodyParam('content');
+        $disabled = $req->getParsedBodyParam('disabled');
         $time = $req->getParsedBodyParam('time');
         $signature = $req->getParsedBodyParam('signature');
+
+        $disabled = $disabled === "" ? null : $disabled;
 
         if ($record === null || $content === null || $time === null || $signature === null) {
             return $res->withJson(['error' => 'One of the required fields is missing.'], 422);
@@ -68,7 +72,7 @@ class Remote
         $remote = new \Operations\Remote($this->c);
 
         try {
-            $remote->updateKey($record, $content, $time, $signature);
+            $remote->updateKey($record, $content, $disabled, $time, $signature);
         } catch (\Exceptions\NotFoundException $e) {
             $this->logger->debug('User tried to update non existent record via changekey api.');
             return $res->withJson(['error' => 'The given record does not exist.'], 404);

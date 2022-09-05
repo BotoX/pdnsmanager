@@ -82,6 +82,7 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
     }
 
     public async onSave(ptr) {
+        this.entry.new = false;
         if (!await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
                 this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value)) {
             return;
@@ -114,5 +115,15 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
 
     public async onRemoteClick() {
         this.router.navigate(['./records', this.entry.id.toString(), 'credentials'], { relativeTo: this.route });
+    }
+
+    public async onToggleClick() {
+        this.entry.new = false;
+        if (!await this.records.updateRecord(this.entry.id, false, null, null, null, null, null, !this.entry.disabled)) {
+            return;
+        }
+
+        this.entry.disabled = !this.entry.disabled;
+        this.recordUpdated.emit();
     }
 }

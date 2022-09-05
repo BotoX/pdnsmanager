@@ -94,7 +94,7 @@ $fa-font-path: "~font-awesome/fonts";
 }
 
 /* Remove glow from inputs */
-.no-shadow { 
+.no-shadow {
     box-shadow: none!important;
     border-color: #CCC!important;
 }
@@ -118,4 +118,14 @@ $fa-font-path: "~font-awesome/fonts";
         max-width: 300%;
         width: auto;
     }
+}
+
+.table-success.table-active {
+    background: repeating-linear-gradient(
+        45deg,
+        #b1dfbb,
+        #b1dfbb 10px,
+        #c8cbcf 10px,
+        #c8cbcf 20px
+    );
 }

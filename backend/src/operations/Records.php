@@ -101,7 +101,7 @@ class Records
         $pageStr = \Services\Database::makePagingString($pi);
 
         $query = $this->db->prepare('
-            SELECT R.id,R.name,R.type,R.content,R.prio as priority,R.ttl,R.domain_id as domain FROM records R
+            SELECT R.id,R.name,R.type,R.content,R.prio as priority,R.ttl,R.disabled,R.domain_id as domain FROM records R
             LEFT OUTER JOIN domains D ON R.domain_id = D.id
             LEFT OUTER JOIN permissions P ON P.domain_id = R.domain_id
             WHERE (P.user_id=:userId OR :userIsAdmin) AND
@@ -230,7 +230,7 @@ class Records
      */
     public function getRecord(int $recordId) : array
     {
-        $query = $this->db->prepare('SELECT id,name,type,content,prio AS priority,ttl,domain_id AS domain FROM records
+        $query = $this->db->prepare('SELECT id,name,type,content,prio AS priority,ttl,domain_id AS domain,disabled FROM records
                                      WHERE id=:recordId');
         $query->bindValue(':recordId', $recordId, \PDO::PARAM_INT);
         $query->execute();
@@ -245,6 +245,7 @@ class Records
         $record['priority'] = intval($record['priority']);
         $record['ttl'] = intval($record['ttl']);
         $record['domain'] = intval($record['domain']);
+        $record['disabled'] = boolval($record['disabled']);
 
         return $record;
     }
@@ -337,13 +338,14 @@ class Records
      * @param   $content    New content
      * @param   $priority   New priority
      * @param   $ttl        New ttl
+     * @param   $disabled   New disabled
      * 
      * @return  array       Record entry
      * 
      * @throws  NotFoundException   The given record does not exist
      * @throws  SemanticException   The given record type is invalid
      */
-    public function updateRecord(int $recordId, ? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl) : array
+    public function updateRecord(int $recordId, ? string $name, ? string $type, ? string $content, ? int $priority, ? int $ttl, ? bool $disabled) : array
     {
         if ($type !== null && !in_array($type, $this->c['config']['records']['allowedTypes'])) {
             throw new \Exceptions\SemanticException();
@@ -356,10 +358,11 @@ class Records
         $content = $content === null ? $record['content'] : $content;
         $priority = $priority === null ? intval($record['priority']) : $priority;
         $ttl = $ttl === null ? intval($record['ttl']) : $ttl;
+        $disabled = $disabled === null ? boolval($record['disabled']) : $disabled;
 
         $this->db->beginTransaction();
 
-        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,ttl=:ttl,prio=:prio
+        $query = $this->db->prepare('UPDATE records SET name=:name,type=:type,content=:content,ttl=:ttl,prio=:prio,disabled=:disabled
                                     WHERE id=:recordId');
         $query->bindValue(':recordId', $recordId, \PDO::PARAM_INT);
         $query->bindValue(':name', $name, \PDO::PARAM_STR);
@@ -367,6 +370,7 @@ class Records
         $query->bindValue(':content', $content, \PDO::PARAM_STR);
         $query->bindValue(':ttl', $ttl, \PDO::PARAM_INT);
         $query->bindValue(':prio', $priority, \PDO::PARAM_INT);
+        $query->bindValue(':disabled', $disabled, \PDO::PARAM_BOOL);
         $query->execute();
 
         $soa = new \Operations\Soa($this->c);

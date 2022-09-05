@@ -12,6 +12,8 @@ export class RecordApitype {
 
     public ttl = 0;
 
+    public disabled = false;
+
     public domain = 0;
 
     public new = false;

@@ -144,7 +144,7 @@ class Records
 
             // Single PTR record exists, update it
             if (isset($record)) {
-                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl']);
+                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $body['name'], $body['priority'], $body['ttl'], null);
                 $line = '';
                 $check = array('name', 'type', 'content', 'priority', 'ttl');
                 foreach ($check as $item) {
@@ -265,6 +265,7 @@ class Records
         $priority = array_key_exists('priority', $body) ? $body['priority'] : null;
         $ttl = array_key_exists('ttl', $body) ? $body['ttl'] : null;
         $ptr = array_key_exists('ptr', $body) ? $body['ptr'] : null;
+        $disabled = array_key_exists('disabled', $body) ? $body['disabled'] : null;
 
         $records = new \Operations\Records($this->c);
 
@@ -311,7 +312,7 @@ class Records
         }
 
         try {
-            $result = $records->updateRecord($recordId, $name, $type, $content, $priority, $ttl);
+            $result = $records->updateRecord($recordId, $name, $type, $content, $priority, $ttl, $disabled);
         } catch (\Exceptions\NotFoundException $e) {
             $this->logger->debug('User tries to update not existing record.');
             return $res->withJson(['error' => 'The record does not exist.'], 404);
@@ -381,7 +382,7 @@ class Records
                     }
                 } else {
                     // Reverse zone stayed the same, update existing PTR record
-                    $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                    $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], null);
                     $line = '';
                     $check = array('name', 'type', 'content', 'priority', 'ttl');
                     foreach ($check as $item) {
@@ -422,7 +423,7 @@ class Records
 
             // Found PTR record in new zone, update it
             if (isset($record)) {
-                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl']);
+                $rresult = $records->updateRecord($record['id'], $reverse['arpa'], 'PTR', $result['new']['name'], $result['new']['priority'], $result['new']['ttl'], null);
                 $line = '';
                 $check = array('name', 'type', 'content', 'priority', 'ttl');
                 foreach ($check as $item) {

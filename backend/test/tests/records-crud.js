@@ -88,7 +88,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 86400,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Adding record return data fail.');
 
         //Get not existing record
@@ -113,7 +114,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 86400,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Record data should be the same it was created with.');
 
         //Get created PTR record
@@ -130,7 +132,8 @@ test.run(async function () {
             content: 'dns.example.com',
             priority: 0,
             ttl: 86400,
-            domain: 6
+            domain: 6,
+            disabled: false
         }, 'PTR record has wrong data.');
 
 
@@ -160,7 +163,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 86400,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Updated record has wrong data.');
 
         //Get updated PTR record
@@ -177,7 +181,8 @@ test.run(async function () {
             content: 'foo.example.com',
             priority: 0,
             ttl: 86400,
-            domain: 6
+            domain: 6,
+            disabled: false
         }, 'PTR record has wrong data.');
 
         //Delete not existing record
@@ -267,7 +272,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 86400,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Adding record return data fail.');
 
         //Get created record
@@ -284,7 +290,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 86400,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Record data should be the same it was created with.');
 
         //Get created PTR record
@@ -301,7 +308,8 @@ test.run(async function () {
             content: 'dns.example.com',
             priority: 0,
             ttl: 86400,
-            domain: 6
+            domain: 6,
+            disabled: false
         }, 'PTR record has wrong data.');
 
 
@@ -332,7 +340,8 @@ test.run(async function () {
             content: '1.2.3.4',
             priority: 0,
             ttl: 60,
-            domain: 1
+            domain: 1,
+            disabled: false
         }, 'Updated record has wrong data.');
 
         //Get updated PTR record
@@ -349,7 +358,8 @@ test.run(async function () {
             content: 'foo.example.com',
             priority: 0,
             ttl: 60,
-            domain: 6
+            domain: 6,
+            disabled: false
         }, 'PTR record has wrong data.');
 
         //Delete existing record

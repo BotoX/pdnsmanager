@@ -83,6 +83,7 @@ test.run(async function () {
             content: '::1',
             priority: 0,
             ttl: 86400,
+            disabled: 0,
             domain: 1
         },
         {
@@ -92,6 +93,7 @@ test.run(async function () {
             content: '9.8.7.6',
             priority: 0,
             ttl: 86400,
+            disabled: 0,
             domain: 3
         },
         ], 'Result fail for ' + res.config.url);
@@ -110,6 +112,7 @@ test.run(async function () {
             content: 'foo bar baz',
             priority: 10,
             ttl: 60,
+            disabled: 0,
             domain: 1
         },
         {
@@ -119,6 +122,7 @@ test.run(async function () {
             content: '::1',
             priority: 0,
             ttl: 86400,
+            disabled: 0,
             domain: 1
         }], 'Result fail for ' + res.config.url);
 
@@ -137,6 +141,7 @@ test.run(async function () {
                 content: '12.34.56.78',
                 priority: 0,
                 ttl: 86400,
+                disabled: 0,
                 domain: 1
             },
             {
@@ -146,6 +151,7 @@ test.run(async function () {
                 content: '9.8.7.6',
                 priority: 0,
                 ttl: 86400,
+                disabled: 0,
                 domain: 3
             }
         ], 'Result fail for ' + res.config.url);
@@ -167,6 +173,7 @@ test.run(async function () {
                 content: '12.34.56.78',
                 priority: 0,
                 ttl: 86400,
+                disabled: 0,
                 domain: 1
             },
             {
@@ -176,6 +183,7 @@ test.run(async function () {
                 content: 'foo bar baz',
                 priority: 10,
                 ttl: 60,
+                disabled: 0,
                 domain: 1
             },
             {
@@ -185,6 +193,7 @@ test.run(async function () {
                 content: '::1',
                 priority: 0,
                 ttl: 86400,
+                disabled: 0,
                 domain: 1
             }
         ], 'Result fail for user on ' + res.config.url);
