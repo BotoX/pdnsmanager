@@ -50,7 +50,7 @@ export class RecordsOperation {
     }
 
     public async updateRecord(recordId: number,  ptr: boolean, name?: string, type?: string, content?: string,
-        priority?: number, ttl?: number, disabled?: boolean): Promise<boolean> {
+        priority?: number, ttl?: number, disabled?: boolean): Promise<number> {
         const data = {};
         if (name !== null && name !== undefined) {
             data['name'] = name;
@@ -73,12 +73,12 @@ export class RecordsOperation {
         data['ptr'] = ptr;
 
         try {
-            await this.http.put(['/records', recordId.toString()], data);
+            const res = await this.http.put(['/records', recordId.toString()], data);
 
-            return true;
+            return res;
         } catch (e) {
             console.error(e);
-            return false;
+            return 0;
         }
     }
 

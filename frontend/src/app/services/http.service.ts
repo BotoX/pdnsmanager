@@ -74,7 +74,7 @@ export class HttpService {
                 method: 'put',
                 data: data,
                 headers: this.buildHeaders()
-            })).data;
+            })).status;
         } catch (e) {
             if (!await this.handleException(e)) {
                 throw e;

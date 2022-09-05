@@ -83,12 +83,14 @@ export class EditAuthLineComponent implements OnInit, OnChanges {
 
     public async onSave(ptr) {
         this.entry.new = false;
-        if (!await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
-                this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value)) {
-            return;
+        const res = await this.records.updateRecord(this.entry.id, ptr, this.fullName(),
+            this.inputType.value, this.inputContent.value, this.inputPriority.value, this.inputTtl.value);
+        if (!res) return;
+        if (res == 201) {
+            const updentry = await this.records.getSingle(this.entry.id);
+            Object.assign(this.entry, updentry);
+            this.entry.new = true;
         }
-
-        this.entry.new = true;
         this.editMode = false;
         this.recordUpdated.emit();
     }

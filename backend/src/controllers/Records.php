@@ -327,14 +327,18 @@ class Records
                 $line .= $item . ': "' . $result['old'][$item] . '"->"' . $result['new'][$item] . '" ';
             }
         }
-        $this->c['logging']->addLog(
-            $result['old']['domain'],
-            $userId,
-            'UPD: #' . $result['old']['id'] . ' ' . $result['old']['name'] . ' ' . $line
-        );
+        $statusCode = 204;
+        if ($line) {
+            $statusCode = 201;
+            $this->c['logging']->addLog(
+                $result['old']['domain'],
+                $userId,
+                'UPD: #' . var_export($result['old']['id'], true) . ' ' . var_export($result['old']['name'], true) . ' ' . $line
+            );
+        }
 
-        if (!$ptr) {
-            return $res->withStatus(204);
+        if (!$ptr || !$line) {
+            return $res->withStatus($statusCode);
         }
 
         // Search for old reverse zone of A or AAAA IP address
@@ -378,7 +382,7 @@ class Records
                             $userId,
                             'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
                         );
-                        return $res->withStatus(204);
+                        return $res->withStatus($statusCode);
                     }
                 } else {
                     // Reverse zone stayed the same, update existing PTR record
@@ -395,11 +399,11 @@ class Records
                         $userId,
                         'RUPD: #' . $rresult['old']['id'] . ' ' . $rresult['old']['name'] . ' ' . $line
                     );
-                    return $res->withStatus(204);
+                    return $res->withStatus($statusCode);
                 }
             } elseif ($reverse == null) {
                 // New reverse zone doesn't exist either, done
-                return $res->withStatus(204);
+                return $res->withStatus($statusCode);
             }
 
             // Old reverse zone doesn't exist but new one does
@@ -415,10 +419,10 @@ class Records
                     $userId,
                     'RADD: #' . $rresult['id'] . ' ' . $rresult['name'] . ' ' . $rresult['type'] . ' ' . $rresult['content']
                 );
-                return $res->withStatus(204);
+                return $res->withStatus($statusCode);
             } catch (\Exceptions\AmbiguousException $e) {
                 // Multiple matching records found, give up
-                return $res->withStatus(204);
+                return $res->withStatus($statusCode);
             }
 
             // Found PTR record in new zone, update it

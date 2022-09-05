@@ -116,7 +116,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr app-edit-auth-line *ngFor="let record of recordList" [entry]="record" [domain]="domain" [ngClass]="{'table-success': record.new, 'table-active': record.disabled}" (recordUpdated)="updateSerial()"
+                    <tr app-edit-auth-line *ngFor="let record of recordList" [entry]="record" [domain]="domain" [ngClass]="{'table-success': record.new, 'table-active': record.disabled}" (recordUpdated)="updateSerial();"
                         (recordDeleted)="updateSerial(); loadRecords();"></tr>
                 </tbody>
                 <tfoot>
