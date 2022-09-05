@@ -321,10 +321,10 @@ class Records
             return $res->withJson(['error' => 'The provided type is invalid.'], 400);
         }
         $line = '';
-        $check = array('name', 'type', 'content', 'priority', 'ttl');
+        $check = array('name', 'type', 'content', 'priority', 'ttl', 'disabled');
         foreach ($check as $item) {
             if ($result['old'][$item] != $result['new'][$item]) {
-                $line .= $item . ': "' . $result['old'][$item] . '"->"' . $result['new'][$item] . '" ';
+                $line .= $item . ': "' . var_export($result['old'][$item], true) . '"->"' . var_export($result['new'][$item], true) . '" ';
             }
         }
         $this->c['logging']->addLog(
