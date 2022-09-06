@@ -146,8 +146,7 @@ test.run(async function () {
                 ptr: true
             }
         });
-
-        assert.equal(res.status, 204, 'Updating record should succeed');
+        assert.equal(res.status, 201, 'Updating record should succeed');
 
         //Get updated record
         var res = await req({
@@ -324,7 +323,7 @@ test.run(async function () {
             }
         });
 
-        assert.equal(res.status, 204, 'Updating record should succeed');
+        assert.equal(res.status, 201, 'Updating record should succeed');
 
         //Get updated record
         var res = await req({

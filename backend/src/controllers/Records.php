@@ -75,6 +75,21 @@ class Records
         if ($body['type'] == 'AAAA' && !filter_var($body['content'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
         }
+        // Check for unquoted spaces
+        $quot = false;
+        for ($i = 0; $i < strlen($body['content']); $i++) {
+            if ($body['content'][$i] == '"') {
+                if ($i == 0 || $body['content'][$i-1] != '\\') {
+                    $quot = !$quot;
+                }
+            }
+            if (!$quot && $body['content'][$i] == ' ') {
+                return $res->withJson(['error' => 'Unquoted whitespace in DNS content.'], 400);
+            }
+        }
+        if ($quot) {
+            return $res->withJson(['error' => 'Open quotation in DNS content.'], 400);
+        }
 
         $records = new \Operations\Records($this->c);
 
@@ -290,6 +305,21 @@ class Records
         }
         if ($type == 'AAAA' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
+        }
+        // Check for unquoted spaces
+        $quot = false;
+        for ($i = 0; $i < strlen($body['content']); $i++) {
+            if ($body['content'][$i] == '"') {
+                if ($i == 0 || $body['content'][$i-1] != '\\') {
+                    $quot = !$quot;
+                }
+            }
+            if (!$quot && $body['content'][$i] == ' ') {
+                return $res->withJson(['error' => 'Unquoted whitespace in DNS content.'], 400);
+            }
+        }
+        if ($quot) {
+            return $res->withJson(['error' => 'Open quotation in DNS content.'], 400);
         }
 
         // Check if CNAME already exists for this name
