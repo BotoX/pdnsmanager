@@ -7,6 +7,42 @@ require '../vendor/autoload.php';
 use \Slim\Http\Request as Request;
 use \Slim\Http\Response as Response;
 
+function validateContent(String $content, String $type)
+{
+    $in_part = $content[0] != ' ';
+    $parts = 0;
+    $quot = false;
+    for ($i = 0; $i < strlen($content); $i++) {
+        if ($content[$i] == '"') {
+            if ($i == 0 || $content[$i-1] != '\\') {
+                $quot = !$quot;
+            }
+        }
+        if (!$quot) {
+            if ($content[$i] == ' ' && $in_part) {
+                $parts += 1;
+                $in_part = false;
+            }
+            if ($content[$i] != ' ') {
+                $in_part = true;
+            }
+        }
+    }
+    if ($in_part) {
+        $parts += 1;
+        $in_part = false;
+    }
+    if ($quot) {
+        return 'Open quotation in DNS content.';
+    }
+    if ((($type == 'A' || $type == 'AAAA' || $type == 'CNAME' || $type == 'TXT' || $type == 'NS' || $type == 'MX') && $parts != 1) ||
+        (($type == 'SRV') && $parts != 3) ||
+        (($type == 'DS') && $parts != 4)) {
+        return 'Unquoted whitespace in DNS content or invalid amount of parameters.';
+    }
+    return false;
+}
+
 class Records
 {
     /** @var \Monolog\Logger */
@@ -66,29 +102,18 @@ class Records
 
         // Validate and filter user input
         $body['name'] = trim($body['name']);
-        if ($body['type'] == 'A' || $body['type'] == 'AAAA' || $body['type'] == 'CNAME') {
-            $body['content'] = trim($body['content']);
+        $body['content'] = trim($body['content']);
+        $valRes = validateContent($body['content'], $body['type']);
+        $this->logger->info('valRes', ['valRes' => $valRes]);
+        if ($valRes != false) {
+            return $res->withJson(['error' => $valRes], 400);
         }
+
         if ($body['type'] == 'A' && !filter_var($body['content'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             return $res->withJson(['error' => 'Invalid IPv4 address.'], 400);
         }
         if ($body['type'] == 'AAAA' && !filter_var($body['content'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
-        }
-        // Check for unquoted spaces
-        $quot = false;
-        for ($i = 0; $i < strlen($body['content']); $i++) {
-            if ($body['content'][$i] == '"') {
-                if ($i == 0 || $body['content'][$i-1] != '\\') {
-                    $quot = !$quot;
-                }
-            }
-            if (!$quot && $body['content'][$i] == ' ') {
-                return $res->withJson(['error' => 'Unquoted whitespace in DNS content.'], 400);
-            }
-        }
-        if ($quot) {
-            return $res->withJson(['error' => 'Open quotation in DNS content.'], 400);
         }
 
         $records = new \Operations\Records($this->c);
@@ -297,29 +322,19 @@ class Records
         }
 
         // Validate and filter user input
-        if ($type == 'A' || $type == 'AAAA' || $type == 'CNAME') {
+        if ($content !== null) {
             $content = trim($content);
-        }
-        if ($type == 'A' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            return $res->withJson(['error' => 'Invalid IPv4 address.'], 400);
-        }
-        if ($type == 'AAAA' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
-            return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
-        }
-        // Check for unquoted spaces
-        $quot = false;
-        for ($i = 0; $i < strlen($body['content']); $i++) {
-            if ($body['content'][$i] == '"') {
-                if ($i == 0 || $body['content'][$i-1] != '\\') {
-                    $quot = !$quot;
-                }
+            $valRes = validateContent($content, $type);
+            if ($valRes != false) {
+                return $res->withJson(['error' => $valRes], 400);
             }
-            if (!$quot && $body['content'][$i] == ' ') {
-                return $res->withJson(['error' => 'Unquoted whitespace in DNS content.'], 400);
+
+            if ($type == 'A' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+                return $res->withJson(['error' => 'Invalid IPv4 address.'], 400);
             }
-        }
-        if ($quot) {
-            return $res->withJson(['error' => 'Open quotation in DNS content.'], 400);
+            if ($type == 'AAAA' && !filter_var($content, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+                return $res->withJson(['error' => 'Invalid IPv6 address.'], 400);
+            }
         }
 
         // Check if CNAME already exists for this name
